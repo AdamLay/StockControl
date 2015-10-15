@@ -1,4 +1,4 @@
-﻿var port = 80;
+﻿var port = 1337;
 var path = require("path");
 var express = require("express");
 var http = require('http');
@@ -40,6 +40,9 @@ io.on('connection', function (socket)
       socket.emit("stock get", result);
     }, data ? data.Name : null);
   });
+
+  // Need a "stock add" event here, in the same format as the one above
+  // The data ought to have Name and Quantity properties which can be passed to StockControl.StockAdd
 
 });
 
