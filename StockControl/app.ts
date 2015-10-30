@@ -27,17 +27,28 @@ server.listen(port, function ()
 
 var io = require('socket.io')(server);
 
+// This just established a "full duplex" two way communication channel (websockets) with the client
 io.on('connection', function (socket)
 {
+  // The socket object is what we'll use to attach to and sent events
+
   console.log('User connected');
 
+  // When the server receives a "stock get" event, it will run this function...
   socket.on("stock get", function (data)
   {
+    // The data parameter has any data in it that's been passed up from the client
+
     console.log("Stock get!");
 
+    // StockGet is a function that takes a callback function as a parameter
     StockControl.StockGet(function (result)
     {
+      // Now we're inside the callback function, and have access to the "result" object which has our stock in it
+
+      // The socket will emit a "stock get" event, so the client can pick up on it
       socket.emit("stock get", result);
+
     }, data ? data.Name : null);
   });
 
@@ -49,6 +60,7 @@ io.on('connection', function (socket)
 //#endregion
 
 //#region Mongo DB
+// Interesting, but don't really worry about anything in here as you don't need to change it
 
 var mongodb = require('mongodb');
 
@@ -130,12 +142,28 @@ class Data
 
 //#endregion
 
+// StockControl class is grouping some helper functions that
+// make it easier for us to get and add stock
 class StockControl
 {
+  /*
+   * callback: (result: Object) => void
+   * callback is the name of the parameter
+   * () => foo is called a lambda, it's shorthand for a function
+   * (result: Object) means the function will take a parameter called result, and it will be an Object
+   * => void means it returns void (doesn't return anything)
+   */
+  /*
+   * name?: string
+   * ? means it's an optional parameter
+   * : string means the parameter will be a string
+   */
   public static StockGet(callback: (result: Object) => void, name?: string)
   {
     Data.Get("Stock", name ? { Name: name } : null, function (result)
     {
+      // Inside this bit, we've gotten the data from mongo and it's now inside a "result" object
+      // We're calling the callback function, and passing the resulting mongo data to it
       callback(result);
     });
   }
@@ -144,7 +172,7 @@ class StockControl
   {
     Data.Insert("Stock", { Name: name, Quantity: quantity }, function (result)
     {
-
+      // What do we want to happen when stock is added?
     });
   }
 
@@ -152,7 +180,7 @@ class StockControl
   {
     Data.Insert("Log", { Name: name, Quantity: quantity, Comment: comment }, function (result)
     {
-      // Done
+      // What do we want to happen when a log entry is added?
     });
   }
 }
