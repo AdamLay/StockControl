@@ -5,13 +5,19 @@ var http = require('http');
 
 var app = express();
 
+// Set up view engine
+app.set("views", path.join(__dirname, "views"));
+app.set("view engine", "jade");
+
 // Declare web root
 app.use(express.static(path.join(__dirname, "web")));
 
-// Set default directory
-app.get("/", function (req, res)
+// Set up routing
+app.get("/", function (req, res) { res.render('index'); });
+
+app.get("/stock/add", function (req, res)
 {
-  res.sendfile(path.join(__dirname, "web/index.html"));
+  res.render("stock/add");
 });
 
 // Create node HTTP Server object
@@ -54,7 +60,13 @@ io.on('connection', function (socket)
 
   // Need a "stock add" event here, in the same format as the one above
   // The data ought to have Name and Quantity properties which can be passed to StockControl.StockAdd
-
+  socket.on("stock add", function (data)
+  {
+    StockControl.StockAdd(data.name, data.quantity, function (result)
+    {
+      socket.emit("stock add", data);
+    });
+  });
 });
 
 //#endregion
@@ -168,11 +180,12 @@ class StockControl
     });
   }
 
-  public static StockAdd(name: string, quantity: number)
+  public static StockAdd(name: string, quantity: number, callback: (result) => void)
   {
     Data.Insert("Stock", { Name: name, Quantity: quantity }, function (result)
     {
       // What do we want to happen when stock is added?
+      callback(result);
     });
   }
 
