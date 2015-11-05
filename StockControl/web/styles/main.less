@@ -9,7 +9,8 @@
 @primary: #F00;
 @secondary: #00989d;
 
-.clearfix:after {
+.clearfix:after,
+.stock-item:after {
     visibility: hidden;
     display: block;
     font-size: 0;
@@ -31,5 +32,38 @@ body {
 }
 
 main {
-    
+    padding-top: 60px;
+}
+
+.category {
+    font-size: 18px;
+
+    + .category {
+        margin-top: 10px;
+    }
+
+    .category-title {
+        width: 100%;
+        padding: 10px;
+        border-bottom: 1px solid @grey;
+        font-weight: bold;
+    }
+}
+
+.stock-item {
+    padding: 10px;
+    width: 100%;
+    border-bottom: 1px solid @light-grey;
+
+    div {
+        float: left;
+    }
+
+    .description {
+        width: 90%;
+    }
+
+    .quantity {
+        width: 10%;
+    }
 }

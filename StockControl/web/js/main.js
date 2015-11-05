@@ -1,6 +1,6 @@
 $(document).ready(function () {
     SocketManager.Init();
-    Inventory.StockGet();
+    //Inventory.StockGet();
 });
 var Inventory = (function () {
     function Inventory() {

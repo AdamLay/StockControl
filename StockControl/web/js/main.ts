@@ -2,7 +2,7 @@
 {
   SocketManager.Init();
 
-  Inventory.StockGet();
+  //Inventory.StockGet();
 });
 
 class Inventory
