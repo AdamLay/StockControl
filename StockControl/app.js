@@ -136,4 +136,3 @@ var StockControl = (function () {
     };
     return StockControl;
 })();
-//# sourceMappingURL=app.js.map

@@ -2,6 +2,11 @@
 
 block content
 
-    form(action="/stock/add", method="post")
-        input(type="text", name="name")
-        input(type="submit")
+    form.col-sm-6(action="/stock/add", method="post")
+        .form-group
+            label(for="name") Name
+            input.form-control(type="text", name="name")
+            label(for="quantity") Quantity
+            input.form-control(type="number", name="quantity")
+        .form-group
+            input.btn.btn-default(type="submit")

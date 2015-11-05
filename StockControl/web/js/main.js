@@ -89,4 +89,3 @@ var SocketManager = (function () {
     };
     return SocketManager;
 })();
-//# sourceMappingURL=main.js.map
