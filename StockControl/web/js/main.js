@@ -40,6 +40,8 @@ var Inventory = (function () {
     };
     Inventory.OnStockUpdate = function () {
     };
+    Inventory.OnStockAdd = function (data) {
+    };
     return Inventory;
 })();
 var Audit = (function () {
@@ -63,6 +65,7 @@ var SocketManager = (function () {
         // From app.ts, in our server side code, whenever we emit the "stock get" event
         // it'll run the function below... etc
         skt.on("stock get", Inventory.OnStockGet);
+        skt.on("stock add", Inventory.OnStockAdd);
         skt.on("stock update", Inventory.OnStockUpdate);
         skt.on("log get", Audit.OnLogGet);
         // Store our socket so we can use it later outside this function
