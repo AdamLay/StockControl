@@ -30,7 +30,6 @@
     <Content Include="views\index.jade" />
     <Content Include="views\layout.jade" />
     <Content Include="views\stock\add.jade" />
-    <Content Include="web\index.html" />
     <TypeScriptCompile Include="d.ts\serve-static.d.ts" />
     <TypeScriptCompile Include="web\js\main.ts" />
     <Compile Include="web\js\main.js" />

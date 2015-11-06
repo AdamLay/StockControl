@@ -1,17 +1,25 @@
 var port = 1337;
 var path = require("path");
 var express = require("express");
+var bodyParser = require("body-parser");
 var http = require('http');
 var app = express();
 // Set up view engine
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "jade");
-// Declare web root
+// Middleware
 app.use(express.static(path.join(__dirname, "web")));
+app.use(bodyParser.urlencoded({ extended: false }));
 // Set up routing
 app.get("/", function (req, res) { res.render('index'); });
 app.get("/stock/add", function (req, res) {
-    res.render("stock/add");
+    res.render("stock/add", { success: req.query.success });
+});
+app.post("/stock/add", function (req, res) {
+    var name = req.body.name;
+    var qty = req.body.quantity;
+    console.log("Stock add POST: " + name + ", " + qty);
+    res.redirect(303, "/stock/add?success=true");
 });
 // Create node HTTP Server object
 var server = http.createServer(app);

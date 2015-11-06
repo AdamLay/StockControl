@@ -2,6 +2,9 @@
 
 block content
 
+    if success == "true"
+        #messageSuccess.alert.alert-success Stock item added successfully
+
     form.col-sm-6(action="/stock/add", method="post")
         .form-group
             label(for="name") Name
@@ -10,3 +13,7 @@ block content
             input.form-control(type="number", name="quantity")
         .form-group
             input.btn.btn-default(type="submit")
+
+block scripts
+    script.
+        setTimeout(function () { $("#messageSuccess").slideUp(200); }, 3000);
