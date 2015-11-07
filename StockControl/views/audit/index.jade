@@ -1,0 +1,10 @@
+﻿extends ../layout
+
+block content
+    
+    .page-header
+        h1 Audit Log
+
+    ul.list-group
+        each log in audit
+            li.list-group-item log

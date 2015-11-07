@@ -1,3 +1,26 @@
+//#region Prototypes
+Array.prototype.where = function (predicate) {
+    var results = [];
+    for (var i = 0; i < this.length; i++)
+        if (predicate(this[i]))
+            results.push(this[i]);
+    if (results.length > 0)
+        return results;
+    return null;
+};
+Array.prototype.first = function (predicate) {
+    for (var i = 0; i < this.length; i++)
+        if (predicate(this[i]))
+            return this[i];
+    return null;
+};
+Array.prototype.contains = function (predicate) {
+    for (var i = 0; i < this.length; i++)
+        if (predicate(this[i]))
+            return true;
+    return false;
+};
+//#endregion
 $(document).ready(function () {
     SocketManager.Init();
     //Inventory.StockGet();
@@ -17,7 +40,7 @@ var Inventory = (function () {
         console.log(data);
         // Get the html DOM element with id of stockList 
         var $list = $("#stockList");
-        // Clear out it's content, so there's nowt inside it
+        // Clear out its content, so there's nowt inside it
         $list.html("");
         // For each item in "data", which we know is an array of stock items
         for (var i = 0; i < data.length; i++) {
@@ -44,12 +67,12 @@ var Inventory = (function () {
     };
     return Inventory;
 })();
-var Audit = (function () {
-    function Audit() {
+var AuditLog = (function () {
+    function AuditLog() {
     }
-    Audit.OnLogGet = function () {
+    AuditLog.OnLogGet = function () {
     };
-    return Audit;
+    return AuditLog;
 })();
 var SocketManager = (function () {
     function SocketManager() {
@@ -67,7 +90,7 @@ var SocketManager = (function () {
         skt.on("stock get", Inventory.OnStockGet);
         skt.on("stock add", Inventory.OnStockAdd);
         skt.on("stock update", Inventory.OnStockUpdate);
-        skt.on("log get", Audit.OnLogGet);
+        skt.on("log get", AuditLog.OnLogGet);
         // Store our socket so we can use it later outside this function
         // for emitting events
         SocketManager._socket = skt;
@@ -89,3 +112,42 @@ var SocketManager = (function () {
     };
     return SocketManager;
 })();
+var Throttler = (function () {
+    function Throttler(id, timeout, callback, startNow) {
+        if (!Throttler.ThrottleTimeouts)
+            Throttler.ThrottleTimeouts = [];
+        var existing = Throttler.GetFromId(id);
+        if (existing && startNow) {
+            console.log("existing");
+            clearTimeout(existing.TimeoutId);
+            existing.TimeoutId = setTimeout(callback, timeout);
+        }
+        else {
+            console.log("new timeout");
+            var throttleTimeout = {
+                ThrottleId: id,
+                Timeout: timeout,
+                TimeoutId: startNow ? setTimeout(callback, timeout) : null,
+                Callback: callback
+            };
+            Throttler.ThrottleTimeouts.push(throttleTimeout);
+        }
+    }
+    Throttler.GetFromId = function (id) {
+        return Throttler.ThrottleTimeouts.first(function (elem) { return elem.ThrottleId == id; });
+    };
+    Throttler.Start = function (id) {
+        var existing = Throttler.GetFromId(id);
+        clearTimeout(existing.TimeoutId);
+        existing.TimeoutId = setTimeout(existing.Callback, existing.Timeout);
+    };
+    Throttler.Refresh = function (id) {
+        var existing = Throttler.GetFromId(id);
+        clearTimeout(existing.TimeoutId);
+        existing.TimeoutId = setTimeout(existing.Callback, existing.Timeout);
+    };
+    Throttler.RemoveAfterRun = function (throttleTimeout) {
+    };
+    return Throttler;
+})();
+//# sourceMappingURL=main.js.map

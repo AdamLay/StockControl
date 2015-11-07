@@ -1,4 +1,47 @@
-﻿$(document).ready(function ()
+﻿//#region Prototypes
+
+interface Array<T>
+{
+  where: (predicate: (elem: T) => boolean) => Array<T>;
+  first: (predicate: (elem: T) => boolean) => T;
+  contains: (predicate: (elem: T) => boolean) => boolean;
+}
+
+Array.prototype.where = function(predicate: (elem) => boolean)
+{
+  var results = [];
+
+  for (var i = 0; i < this.length; i++)
+    if (predicate(this[i]))
+      results.push(this[i]);
+
+  if (results.length > 0)
+    return results;
+
+  return null;
+};
+
+Array.prototype.first = function(predicate: (elem) => boolean)
+{
+  for (var i = 0; i < this.length; i++)
+    if (predicate(this[i]))
+      return this[i];
+  
+  return null;
+};
+
+Array.prototype.contains = function(predicate: (elem) => boolean)
+{
+  for (var i = 0; i < this.length; i++)
+    if (predicate(this[i]))
+      return true;
+
+  return false;
+};
+
+//#endregion
+
+$(document).ready(function ()
 {
   SocketManager.Init();
 
@@ -24,7 +67,7 @@ class Inventory
     // Get the html DOM element with id of stockList 
     var $list = $("#stockList");
 
-    // Clear out it's content, so there's nowt inside it
+    // Clear out its content, so there's nowt inside it
     $list.html("");
 
     // For each item in "data", which we know is an array of stock items
@@ -63,7 +106,7 @@ class Inventory
   }
 }
 
-class Audit
+class AuditLog
 {
   public static OnLogGet(): void
   {
@@ -94,7 +137,7 @@ class SocketManager
     skt.on("stock add", Inventory.OnStockAdd);
     skt.on("stock update", Inventory.OnStockUpdate);
 
-    skt.on("log get", Audit.OnLogGet);
+    skt.on("log get", AuditLog.OnLogGet);
 
     // Store our socket so we can use it later outside this function
     // for emitting events
@@ -122,5 +165,74 @@ class SocketManager
     // What do we want to do when we've disconnected or lost connection?
     // Probably show that there's an error communicating with the server
     // and disable some UI features
+  }
+}
+
+interface IThrottleTimeout
+{
+  ThrottleId: string;
+  Timeout: number;
+  TimeoutId?: any;
+  Callback: () => void;
+}
+
+class Throttler
+{
+  public static ThrottleTimeouts: Array<IThrottleTimeout>;
+
+  constructor(id: string, timeout: number, callback: () => void, startNow?: boolean)
+  {
+    if (!Throttler.ThrottleTimeouts)
+      Throttler.ThrottleTimeouts = [];
+
+    var existing = Throttler.GetFromId(id);
+
+    if (existing && startNow)
+    {
+      console.log("existing");
+      clearTimeout(existing.TimeoutId);
+
+      existing.TimeoutId = setTimeout(callback, timeout);
+    }
+    else
+    {
+      console.log("new timeout");
+      var throttleTimeout = {
+        ThrottleId: id,
+        Timeout: timeout,
+        TimeoutId: startNow ? setTimeout(callback, timeout) : null,
+        Callback: callback
+      };
+
+      Throttler.ThrottleTimeouts.push(throttleTimeout);
+    }
+  }
+
+  public static GetFromId(id: string): IThrottleTimeout
+  {
+    return Throttler.ThrottleTimeouts.first((elem) => { return elem.ThrottleId == id; });
+  }
+
+  public static Start(id: string): void
+  {
+    var existing = Throttler.GetFromId(id);
+
+    clearTimeout(existing.TimeoutId);
+
+    existing.TimeoutId = setTimeout(existing.Callback, existing.Timeout);
+  }
+
+  public static Refresh(id: string): void
+  {
+    var existing = Throttler.GetFromId(id);
+
+    clearTimeout(existing.TimeoutId);
+
+    existing.TimeoutId = setTimeout(existing.Callback, existing.Timeout);
+  }
+
+  private static RemoveAfterRun(throttleTimeout: IThrottleTimeout): void
+  {
+
   }
 }

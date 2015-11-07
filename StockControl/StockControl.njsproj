@@ -27,10 +27,12 @@
     <TypeScriptCompile Include="d.ts\jquery.d.ts" />
     <TypeScriptCompile Include="d.ts\mongodb.d.ts" />
     <TypeScriptCompile Include="d.ts\node.d.ts" />
+    <Content Include="views\audit\index.jade" />
     <Content Include="views\index.jade" />
     <Content Include="views\layout.jade" />
-    <Content Include="views\stock\add.jade" />
+    <Content Include="views\stock\new.jade" />
     <TypeScriptCompile Include="d.ts\serve-static.d.ts" />
+    <TypeScriptCompile Include="StockControl.d.ts" />
     <TypeScriptCompile Include="web\js\main.ts" />
     <Compile Include="web\js\main.js" />
     <Content Include="web\styles\main.css" />
@@ -46,6 +48,7 @@
   <ItemGroup>
     <Folder Include="d.ts" />
     <Folder Include="views\" />
+    <Folder Include="views\audit\" />
     <Folder Include="views\stock\" />
     <Folder Include="web" />
     <Folder Include="web\images" />
@@ -65,7 +68,7 @@
     <TypeScriptOutDir />
     <TypeScriptGeneratesDeclarations>False</TypeScriptGeneratesDeclarations>
     <TypeScriptNoEmitOnError>True</TypeScriptNoEmitOnError>
-    <TypeScriptSourceMap>False</TypeScriptSourceMap>
+    <TypeScriptSourceMap>True</TypeScriptSourceMap>
     <TypeScriptMapRoot />
     <TypeScriptSourceRoot />
   </PropertyGroup>

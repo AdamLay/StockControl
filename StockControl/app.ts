@@ -14,23 +14,82 @@ app.set("view engine", "jade");
 app.use(express.static(path.join(__dirname, "web")));
 app.use(bodyParser.urlencoded({ extended: false }));
 
-// Set up routing
+
+
+//#region Set up routing
+
 app.get("/", function (req, res) { res.render('index'); });
 
-app.get("/stock/add", function (req, res)
+//#region Stock
+
+// GET
+app.get("/stock/new", function (req, res)
 {
-  res.render("stock/add", { success: req.query.success });
+  res.render("stock/new", { success: req.query.success });
 });
 
-app.post("/stock/add", function (req, res)
+// POST
+app.post("/stock/create", function (req, res)
 {
   var name = req.body.name
-  var qty = req.body.quantity;
+  var qty = parseInt(req.body.quantity);
+
+  if (qty === NaN)
+  {
+    res.redirect(303, "/stock/new?success=false");
+
+    return;
+  }
 
   console.log("Stock add POST: " + name + ", " + qty);
 
-  res.redirect(303, "/stock/add?success=true");
+  var stockItem = { Name: name, Quantity: qty };
+
+  StockControl.StockAdd(stockItem, (result) =>
+  {
+    if (result.result.ok)
+    {
+      Audit.AddLog("Stock item added: " + name);
+
+      io.sockets.emit("stock add", stockItem);
+
+      res.redirect(303, "/stock/new?success=true");
+    }
+    else
+      res.redirect(303, "/stock/new?success=false");
+  });
 });
+
+//GET /stock/Foo
+app.get("/stock/:id", function (req, res)
+{
+  StockControl.StockGet((result) =>
+  {
+    res.setHeader('Content-Type', 'application/json');
+
+    if (result.length > 0)
+    {
+      res.send(JSON.stringify({ Success: true, Result: result[0] }));
+    }
+    else
+    {
+      res.send(JSON.stringify({ Success: false }));
+    }
+  }, req.params.id);
+});
+
+//#endregion
+
+//#region Audit
+
+app.get("/audit", function (req, res)
+{
+  res.render("audit/index", { audit: [ "foo", "bar" ] });
+});
+
+//#endregion
+
+//#endregion
 
 // Create node HTTP Server object
 var server = http.createServer(app);
@@ -49,7 +108,7 @@ var io = require('socket.io')(server);
 io.on('connection', function (socket)
 {
   // The socket object is what we'll use to attach to and sent events
-
+  
   console.log('User connected');
 
   // When the server receives a "stock get" event, it will run this function...
@@ -69,17 +128,8 @@ io.on('connection', function (socket)
 
     }, data ? data.Name : null);
   });
-
-  // Need a "stock add" event here, in the same format as the one above
-  // The data ought to have Name and Quantity properties which can be passed to StockControl.StockAdd
-  socket.on("stock add", function (data)
-  {
-    StockControl.StockAdd(data.name, data.quantity, function (result)
-    {
-      socket.emit("stock add", data);
-    });
-  });
 });
+
 
 //#endregion
 
@@ -182,7 +232,7 @@ class StockControl
    * ? means it's an optional parameter
    * : string means the parameter will be a string
    */
-  public static StockGet(callback: (result: Object) => void, name?: string)
+  public static StockGet(callback: (result: Array<any>) => void, name?: string)
   {
     Data.Get("Stock", name ? { Name: name } : null, function (result)
     {
@@ -192,9 +242,9 @@ class StockControl
     });
   }
 
-  public static StockAdd(name: string, quantity: number, callback: (result) => void)
+  public static StockAdd(item: IStockItem, callback: (result) => void)
   {
-    Data.Insert("Stock", { Name: name, Quantity: quantity }, function (result)
+    Data.Insert("Stock", item, function (result)
     {
       // What do we want to happen when stock is added?
       callback(result);
@@ -206,6 +256,17 @@ class StockControl
     Data.Insert("Log", { Name: name, Quantity: quantity, Comment: comment }, function (result)
     {
       // What do we want to happen when a log entry is added?
+    });
+  }
+}
+
+class Audit
+{
+  public static AddLog(entry: string): void
+  {
+    Data.Insert("Audit", { Message: entry, Timestamp: new Date() }, function (result)
+    {
+
     });
   }
 }
