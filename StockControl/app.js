@@ -29,7 +29,7 @@ app.post("/stock/create", function (req, res) {
     var stockItem = { Name: name, Quantity: qty };
     StockControl.StockAdd(stockItem, function (result) {
         if (result.result.ok) {
-            Audit.AddLog("Stock item added: " + name);
+            Audit.AddLog("Stock Add", "Stock item added: { Name: " + name + ", Quantity: " + qty + " }");
             io.sockets.emit("stock add", stockItem);
             res.redirect(303, "/stock/new?success=true");
         }
@@ -52,7 +52,9 @@ app.get("/stock/:id", function (req, res) {
 //#endregion
 //#region Audit
 app.get("/audit", function (req, res) {
-    res.render("audit/index", { audit: ["foo", "bar"] });
+    Audit.GetLogEntries(function (results) {
+        res.render("audit/index", { audit: results });
+    });
 });
 //#endregion
 //#endregion
@@ -106,6 +108,13 @@ var Data = (function () {
         var col = Data._db.collection(collection);
         query = query || {};
         col.find(query).toArray(function (err, results) {
+            callback(results);
+        });
+    };
+    Data.GetTop = function (collection, query, count, callback) {
+        var col = Data._db.collection(collection);
+        query = query || {};
+        col.find(query).sort({ _id: -1 }).limit(count).toArray(function (err, results) {
             callback(results);
         });
     };
@@ -175,8 +184,13 @@ var StockControl = (function () {
 var Audit = (function () {
     function Audit() {
     }
-    Audit.AddLog = function (entry) {
-        Data.Insert("Audit", { Message: entry, Timestamp: new Date() }, function (result) {
+    Audit.AddLog = function (title, entry) {
+        Data.Insert("Audit", { Title: title, Message: entry, Timestamp: new Date() }, function (result) {
+        });
+    };
+    Audit.GetLogEntries = function (callback) {
+        Data.GetTop("Audit", null, 100, function (results) {
+            callback(results);
         });
     };
     return Audit;
