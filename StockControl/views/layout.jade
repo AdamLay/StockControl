@@ -4,7 +4,7 @@ html
     meta(charset="utf-8")
     meta(name="viewport", content="width=device-width, initial-scale=1.0")
 
-    title Laptop Doctor - Source Control
+    title Stock Control
 
     link(rel="stylesheet", type="text/css", href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css")
     link(rel="stylesheet", type="text/css", href="https://fonts.googleapis.com/css?family=Open+Sans:400,300,600")
@@ -26,11 +26,21 @@ html
                     span.icon-bar
                 a.navbar-brand(href='/') Stock Control
             #navbar.collapse.navbar-collapse
-                ul.nav.navbar-nav
+                ul.nav.navbar-nav.pull-right
                     li
                         a(href='#') Home
-                    li
-                        a(href='/stock/new') Add Stock
+                    li.dropdown
+                        a.dropdown-toggle(href='#', data-toggle='dropdown', role='button') Stock
+                            span.caret
+                        ul.dropdown-menu
+                            li.dropdown-header Stock Items
+                            li
+                                a(href='/stock') View
+                            li
+                                a(href='/stock/new') Add
+                            li.dropdown-header Stock Groups
+                            li
+                                a(href='/stock-groups/new') Add
                     li
                         a(href='/audit') Audit Log
 

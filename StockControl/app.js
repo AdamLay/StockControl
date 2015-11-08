@@ -11,30 +11,35 @@ app.set("view engine", "jade");
 app.use(express.static(path.join(__dirname, "web")));
 app.use(bodyParser.urlencoded({ extended: false }));
 //#region Set up routing
-app.get("/", function (req, res) { res.render('index'); });
+app.get("/", function (req, res) { res.render("index"); });
 //#region Stock
+// GET
+app.get("/stock(/index)?", function (req, res) { res.render("stock/index"); });
 // GET
 app.get("/stock/new", function (req, res) {
     res.render("stock/new", { success: req.query.success });
 });
 // POST
 app.post("/stock/create", function (req, res) {
-    var name = req.body.name;
-    var qty = parseInt(req.body.quantity);
-    if (qty === NaN) {
+    var stockItem = {
+        Name: req.body.name,
+        Quantity: parseInt(req.body.quantity),
+        Reorder: parseInt(req.body.reorder)
+    };
+    if (stockItem.Quantity === NaN || stockItem.Reorder === NaN) {
         res.redirect(303, "/stock/new?success=false");
         return;
     }
-    console.log("Stock add POST: " + name + ", " + qty);
-    var stockItem = { Name: name, Quantity: qty };
+    var strItem = JSON.stringify(stockItem);
     StockControl.StockAdd(stockItem, function (result) {
         if (result.result.ok) {
-            Audit.AddLog("Stock Add", "Stock item added: { Name: " + name + ", Quantity: " + qty + " }");
+            Audit.AddLog(Audit.Types.StockAdd, "Stock item added: " + strItem);
             io.sockets.emit("stock add", stockItem);
             res.redirect(303, "/stock/new?success=true");
         }
-        else
+        else {
             res.redirect(303, "/stock/new?success=false");
+        }
     });
 });
 //GET /stock/Foo
@@ -50,9 +55,42 @@ app.get("/stock/:id", function (req, res) {
     }, req.params.id);
 });
 //#endregion
+//#region Stock Groups
+app.get("/stock-groups/new", function (req, res) {
+    res.render("stock-groups/new", { success: req.query.success });
+});
+// POST
+app.post("/stock-groups/create", function (req, res) {
+    var stockGroup = {
+        Name: req.body.name
+    };
+    var strGroup = JSON.stringify(stockGroup);
+    StockControl.StockGroupAdd(stockGroup, function (result) {
+        if (result.result.ok) {
+            Audit.AddLog(Audit.Types.StockGroupAdd, "Stock group added: " + strGroup);
+            res.redirect(303, "/stock-groups/new?success=true");
+        }
+        else {
+            res.redirect(303, "/stock-groups/new?success=false");
+        }
+    });
+});
+//GET /stock-groups/Foo
+app.get("/stock-groups/:id", function (req, res) {
+    StockControl.StockGroupGet(function (result) {
+        res.setHeader('Content-Type', 'application/json');
+        if (result.length > 0) {
+            res.send(JSON.stringify({ Success: true, Result: result[0] }));
+        }
+        else {
+            res.send(JSON.stringify({ Success: false }));
+        }
+    }, req.params.id);
+});
+//#endregion
 //#region Audit
-app.get("/audit", function (req, res) {
-    Audit.GetLogEntries(function (results) {
+app.get("/audit(/index)?", function (req, res) {
+    Audit.GetLogEntries(null, function (results) {
         res.render("audit/index", { audit: results });
     });
 });
@@ -144,39 +182,27 @@ var Data = (function () {
     return Data;
 })();
 //#endregion
-// StockControl class is grouping some helper functions that
-// make it easier for us to get and add stock
 var StockControl = (function () {
     function StockControl() {
     }
-    /*
-     * callback: (result: Object) => void
-     * callback is the name of the parameter
-     * () => foo is called a lambda, it's shorthand for a function
-     * (result: Object) means the function will take a parameter called result, and it will be an Object
-     * => void means it returns void (doesn't return anything)
-     */
-    /*
-     * name?: string
-     * ? means it's an optional parameter
-     * : string means the parameter will be a string
-     */
     StockControl.StockGet = function (callback, name) {
         Data.Get("Stock", name ? { Name: name } : null, function (result) {
-            // Inside this bit, we've gotten the data from mongo and it's now inside a "result" object
-            // We're calling the callback function, and passing the resulting mongo data to it
             callback(result);
         });
     };
     StockControl.StockAdd = function (item, callback) {
         Data.Insert("Stock", item, function (result) {
-            // What do we want to happen when stock is added?
             callback(result);
         });
     };
-    StockControl.LogAdd = function (name, quantity, comment) {
-        Data.Insert("Log", { Name: name, Quantity: quantity, Comment: comment }, function (result) {
-            // What do we want to happen when a log entry is added?
+    StockControl.StockGroupGet = function (callback, name) {
+        Data.Get("StockGroups", name ? { Name: name } : null, function (result) {
+            callback(result);
+        });
+    };
+    StockControl.StockGroupAdd = function (group, callback) {
+        Data.Insert("StockGroups", group, function (result) {
+            callback(result);
         });
     };
     return StockControl;
@@ -188,10 +214,15 @@ var Audit = (function () {
         Data.Insert("Audit", { Title: title, Message: entry, Timestamp: new Date() }, function (result) {
         });
     };
-    Audit.GetLogEntries = function (callback) {
-        Data.GetTop("Audit", null, 100, function (results) {
+    Audit.GetLogEntries = function (type, callback) {
+        Data.GetTop("Audit", type ? { Title: type } : null, 100, function (results) {
             callback(results);
         });
+    };
+    Audit.Types = {
+        StockAdd: "Stock Add",
+        StockUpdate: "Stock Update",
+        StockGroupAdd: "Stock Group Add"
     };
     return Audit;
 })();

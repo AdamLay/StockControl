@@ -18,6 +18,8 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
   <ItemGroup>
+    <Compile Include="web\js\stock-groups\new.js" />
+    <Compile Include="web\js\stock\new.js" />
     <Content Include="compilerconfig.json" />
     <Content Include="package.json" />
     <Content Include="README.md" />
@@ -30,6 +32,9 @@
     <Content Include="views\audit\index.jade" />
     <Content Include="views\index.jade" />
     <Content Include="views\layout.jade" />
+    <Content Include="views\partials\stock-list.jade" />
+    <Content Include="views\stock-groups\new.jade" />
+    <Content Include="views\stock\index.jade" />
     <Content Include="views\stock\new.jade" />
     <TypeScriptCompile Include="d.ts\serve-static.d.ts" />
     <TypeScriptCompile Include="StockControl.d.ts" />
@@ -44,16 +49,22 @@
     <Content Include="web\images\icons\minus.svg" />
     <Content Include="web\images\icons\remove.svg" />
     <Content Include="web\images\icons\settings.svg" />
+    <TypeScriptCompile Include="web\js\stock-groups\new.ts" />
+    <TypeScriptCompile Include="web\js\stock\new.ts" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="d.ts" />
     <Folder Include="views\" />
     <Folder Include="views\audit\" />
+    <Folder Include="views\stock-groups\" />
+    <Folder Include="views\partials\" />
     <Folder Include="views\stock\" />
     <Folder Include="web" />
     <Folder Include="web\images" />
     <Folder Include="web\images\icons" />
     <Folder Include="web\js" />
+    <Folder Include="web\js\stock-groups\" />
+    <Folder Include="web\js\stock\" />
     <Folder Include="web\styles" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />

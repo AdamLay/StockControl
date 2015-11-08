@@ -150,4 +150,22 @@ var Throttler = (function () {
     };
     return Throttler;
 })();
+var Validation = (function () {
+    function Validation() {
+    }
+    Validation.Error = function (elem) {
+        var $p = $(elem).parent();
+        $p.removeClass("has-success");
+        $p.addClass("has-error");
+        $("#btnSubmit").prop("disabled", "disabled");
+    };
+    Validation.Success = function (elem) {
+        var $p = $(elem).parent();
+        $p.removeClass("has-error");
+        $p.addClass("has-success");
+        if ($(".has-error").length == 0)
+            $("#btnSubmit").removeAttr("disabled");
+    };
+    return Validation;
+})();
 //# sourceMappingURL=main.js.map

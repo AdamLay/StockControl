@@ -236,3 +236,27 @@ class Throttler
 
   }
 }
+
+class Validation
+{
+  public static Error(elem)
+  {
+    var $p = $(elem).parent();
+
+    $p.removeClass("has-success");
+    $p.addClass("has-error");
+
+    $("#btnSubmit").prop("disabled", "disabled");
+  }
+
+  public static Success(elem)
+  {
+    var $p = $(elem).parent();
+
+    $p.removeClass("has-error");
+    $p.addClass("has-success");
+
+    if ($(".has-error").length == 0)
+      $("#btnSubmit").removeAttr("disabled");
+  }
+}

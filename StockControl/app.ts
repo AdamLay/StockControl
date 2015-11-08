@@ -18,9 +18,12 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 //#region Set up routing
 
-app.get("/", function (req, res) { res.render('index'); });
+app.get("/", function (req, res) { res.render("index"); });
 
 //#region Stock
+
+// GET
+app.get("/stock(/index)?", function (req, res) { res.render("stock/index") });
 
 // GET
 app.get("/stock/new", function (req, res)
@@ -31,32 +34,35 @@ app.get("/stock/new", function (req, res)
 // POST
 app.post("/stock/create", function (req, res)
 {
-  var name = req.body.name
-  var qty = parseInt(req.body.quantity);
+  var stockItem = {
+    Name: req.body.name,
+    Quantity: parseInt(req.body.quantity),
+    Reorder: parseInt(req.body.reorder)
+  };
 
-  if (qty === NaN)
+  if (stockItem.Quantity === NaN || stockItem.Reorder === NaN)
   {
     res.redirect(303, "/stock/new?success=false");
 
     return;
   }
 
-  console.log("Stock add POST: " + name + ", " + qty);
-
-  var stockItem = { Name: name, Quantity: qty };
+  var strItem = JSON.stringify(stockItem);
 
   StockControl.StockAdd(stockItem, (result) =>
   {
     if (result.result.ok)
     {
-      Audit.AddLog("Stock Add", "Stock item added: { Name: " + name + ", Quantity: " + qty + " }");
+      Audit.AddLog(Audit.Types.StockAdd, "Stock item added: " + strItem);
 
       io.sockets.emit("stock add", stockItem);
 
       res.redirect(303, "/stock/new?success=true");
     }
     else
+    {
       res.redirect(303, "/stock/new?success=false");
+    }
   });
 });
 
@@ -80,11 +86,62 @@ app.get("/stock/:id", function (req, res)
 
 //#endregion
 
+//#region Stock Groups
+
+app.get("/stock-groups/new", function (req, res)
+{
+  res.render("stock-groups/new", { success: req.query.success });
+});
+
+// POST
+app.post("/stock-groups/create", function (req, res)
+{
+  var stockGroup = {
+    Name: req.body.name
+  };
+  
+  var strGroup = JSON.stringify(stockGroup);
+
+  StockControl.StockGroupAdd(stockGroup, (result) =>
+  {
+    if (result.result.ok)
+    {
+      Audit.AddLog(Audit.Types.StockGroupAdd, "Stock group added: " + strGroup);
+      
+      res.redirect(303, "/stock-groups/new?success=true");
+    }
+    else
+    {
+      res.redirect(303, "/stock-groups/new?success=false");
+    }
+  });
+});
+
+//GET /stock-groups/Foo
+app.get("/stock-groups/:id", function (req, res)
+{
+  StockControl.StockGroupGet((result) =>
+  {
+    res.setHeader('Content-Type', 'application/json');
+
+    if (result.length > 0)
+    {
+      res.send(JSON.stringify({ Success: true, Result: result[0] }));
+    }
+    else
+    {
+      res.send(JSON.stringify({ Success: false }));
+    }
+  }, req.params.id);
+});
+
+//#endregion
+
 //#region Audit
 
-app.get("/audit", function (req, res)
+app.get("/audit(/index)?", function (req, res)
 {
-  Audit.GetLogEntries(function (results)
+  Audit.GetLogEntries(null, function (results)
   {
     res.render("audit/index", { audit: results });
   });
@@ -231,52 +288,49 @@ class Data
 
 //#endregion
 
-// StockControl class is grouping some helper functions that
-// make it easier for us to get and add stock
 class StockControl
 {
-  /*
-   * callback: (result: Object) => void
-   * callback is the name of the parameter
-   * () => foo is called a lambda, it's shorthand for a function
-   * (result: Object) means the function will take a parameter called result, and it will be an Object
-   * => void means it returns void (doesn't return anything)
-   */
-  /*
-   * name?: string
-   * ? means it's an optional parameter
-   * : string means the parameter will be a string
-   */
-  public static StockGet(callback: (result: Array<any>) => void, name?: string)
+  public static StockGet(callback: (result: Array<any>) => void, name?: string): void
   {
     Data.Get("Stock", name ? { Name: name } : null, function (result)
     {
-      // Inside this bit, we've gotten the data from mongo and it's now inside a "result" object
-      // We're calling the callback function, and passing the resulting mongo data to it
       callback(result);
     });
   }
 
-  public static StockAdd(item: IStockItem, callback: (result) => void)
+  public static StockAdd(item: IStockItem, callback: (result) => void): void
   {
     Data.Insert("Stock", item, function (result)
     {
-      // What do we want to happen when stock is added?
       callback(result);
     });
   }
 
-  public static LogAdd(name: string, quantity: number, comment?: string)
+  public static StockGroupGet(callback: (result: Array<any>) => void, name?: string): void
   {
-    Data.Insert("Log", { Name: name, Quantity: quantity, Comment: comment }, function (result)
+    Data.Get("StockGroups", name ? { Name: name } : null, function (result)
     {
-      // What do we want to happen when a log entry is added?
+      callback(result);
+    });
+  }
+
+  public static StockGroupAdd(group: IStockGroup, callback: (result) => void): void
+  {
+    Data.Insert("StockGroups", group, function (result)
+    {
+      callback(result);
     });
   }
 }
 
 class Audit
 {
+  public static Types = {
+    StockAdd: "Stock Add",
+    StockUpdate: "Stock Update",
+    StockGroupAdd: "Stock Group Add"
+  }
+
   public static AddLog(title: string, entry: string): void
   {
     Data.Insert("Audit", { Title: title, Message: entry, Timestamp: new Date() }, function (result)
@@ -285,9 +339,9 @@ class Audit
     });
   }
 
-  public static GetLogEntries(callback: Function)
+  public static GetLogEntries(type: string, callback: Function)
   {
-    Data.GetTop("Audit", null, 100, function (results)
+    Data.GetTop("Audit", type ? { Title: type } : null, 100, function (results)
     {
       callback(results);
     });
