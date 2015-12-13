@@ -15,35 +15,8 @@ app.get("/", function (req, res) { res.render("index"); });
 //#region Stock
 // GET
 app.get("/stock(/index)?", function (req, res) { res.render("stock/index"); });
-// GET
-app.get("/stock/new", function (req, res) {
-    res.render("stock/new", { success: req.query.success });
-});
-// POST
-app.post("/stock/create", function (req, res) {
-    var stockItem = {
-        Name: req.body.name,
-        Quantity: parseInt(req.body.quantity),
-        Reorder: parseInt(req.body.reorder)
-    };
-    if (stockItem.Quantity === NaN || stockItem.Reorder === NaN) {
-        res.redirect(303, "/stock/new?success=false");
-        return;
-    }
-    var strItem = JSON.stringify(stockItem);
-    StockControl.StockAdd(stockItem, function (result) {
-        if (result.result.ok) {
-            Audit.AddLog(Audit.Types.StockAdd, "Stock item added: " + strItem);
-            io.sockets.emit("stock add", stockItem);
-            res.redirect(303, "/stock/new?success=true");
-        }
-        else {
-            res.redirect(303, "/stock/new?success=false");
-        }
-    });
-});
 //GET /stock/Foo
-app.get("/stock/:id", function (req, res) {
+app.get("/api/stock/:id", function (req, res) {
     StockControl.StockGet(function (result) {
         res.setHeader('Content-Type', 'application/json');
         if (result.length > 0) {
@@ -54,29 +27,65 @@ app.get("/stock/:id", function (req, res) {
         }
     }, req.params.id);
 });
+// GET
+app.get("/stock/new", function (req, res) {
+    res.render("stock/new", { success: req.query.success });
+});
+// POST
+app.post("/stock/create", function (req, res) {
+    var stockItem = {
+        Name: req.body.name,
+        StockGroupId: req.body.group,
+        Quantity: parseInt(req.body.quantity),
+        Reorder: parseInt(req.body.reorder)
+    };
+    if (stockItem.Quantity === NaN || stockItem.Reorder === NaN) {
+        res.redirect(303, "/stock/new?success=false");
+        return;
+    }
+    var strItem = JSON.stringify(stockItem);
+    StockControl.StockAdd(stockItem, function (result) {
+        Audit.AddLog(Audit.Types.StockAdd, "Stock item added: " + strItem);
+        io.sockets.emit("stock add", stockItem);
+        res.redirect(303, "/stock/new?success=true");
+    });
+});
+//DELETE /Stock/1
+app.delete("/stock/:id", function (req, res) {
+    var id = req.params.id;
+    StockControl.StockGet(function (results) {
+        if (results.filter(function (m) { return m.Id == id; }).length == 1) {
+            StockControl.StockRemove({ Id: id });
+            Audit.AddLog(Audit.Types.StockRemove, "Stock item deleted: " + results[0].Name);
+        }
+    });
+});
 //#endregion
 //#region Stock Groups
+//GET 
 app.get("/stock-groups/new", function (req, res) {
     res.render("stock-groups/new", { success: req.query.success });
 });
-// POST
+//POST
 app.post("/stock-groups/create", function (req, res) {
     var stockGroup = {
         Name: req.body.name
     };
     var strGroup = JSON.stringify(stockGroup);
     StockControl.StockGroupAdd(stockGroup, function (result) {
-        if (result.result.ok) {
-            Audit.AddLog(Audit.Types.StockGroupAdd, "Stock group added: " + strGroup);
-            res.redirect(303, "/stock-groups/new?success=true");
-        }
-        else {
-            res.redirect(303, "/stock-groups/new?success=false");
-        }
+        Audit.AddLog(Audit.Types.StockGroupAdd, "Stock group added: " + strGroup);
+        res.redirect(303, "/stock-groups/new?success=true");
     });
 });
-//GET /stock-groups/Foo
-app.get("/stock-groups/:id", function (req, res) {
+//GET
+app.get("/api/stock-groups", function (req, res) {
+    StockControl.StockGroupGet(function (result) {
+        res.setHeader('Content-Type', 'application/json');
+        res.send(JSON.stringify({ Success: result.length > 0, Results: result }));
+    });
+});
+//GET /api/stock-groups/Foo
+app.get("/api/stock-groups/:id", function (req, res) {
     StockControl.StockGroupGet(function (result) {
         res.setHeader('Content-Type', 'application/json');
         if (result.length > 0) {
@@ -87,21 +96,50 @@ app.get("/stock-groups/:id", function (req, res) {
         }
     }, req.params.id);
 });
+//GET
+app.get("/stock-groups/edit", function (req, res) {
+    StockControl.StockGroupGet(function (data) {
+        res.render("stock-groups/edit", { groups: data });
+    });
+});
+//PUT
+app.put("/stock-groups/:id", function (req, res) {
+    Data.Update("StockGroups", { Name: req.body.Name }, "Id = " + req.params.id);
+    Audit.AddLog(Audit.Types.StockGroupUpdate, "Stock group updated: " + req.params.id + " = " + req.body.Name);
+    res.setHeader('Content-Type', 'application/json');
+    res.send(JSON.stringify({ Success: true }));
+});
+//DELETE
+app.delete("/stock-groups/:id", function (req, res) {
+    Data.Delete("StockGroups", "Id = " + sqlEscape(req.params.id));
+    Audit.AddLog(Audit.Types.StockGroupRemove, "Stock group removed: " + req.params.id);
+    res.setHeader('Content-Type', 'application/json');
+    res.send(JSON.stringify({ Success: true }));
+});
 //#endregion
 //#region Audit
+//GET
 app.get("/audit(/index)?", function (req, res) {
     Audit.GetLogEntries(null, function (results) {
+        // Sort by date descending
+        results = results.sort(function (a, b) {
+            var d1 = new Date(a.Timestamp);
+            var d2 = new Date(b.Timestamp);
+            return d1 > d2 ? -1 : d2 > d1 ? 1 : 0;
+        });
         res.render("audit/index", { audit: results });
     });
 });
 //#endregion
 //#endregion
+//#region Server
 // Create node HTTP Server object
 var server = http.createServer(app);
 // Run HTTP Server
 server.listen(port, function () {
     console.log("Server listening on port " + port);
 });
+//#endregion
 //#region Socket.io
 var io = require('socket.io')(server);
 // This just established a "full duplex" two way communication channel (websockets) with the client
@@ -119,19 +157,14 @@ io.on('connection', function (socket) {
             socket.emit("stock get", result);
         }, data ? data.Name : null);
     });
+    socket.emit;
 });
 //#endregion
-//#region Mongo DB
-// Interesting, but don't really worry about anything in here as you don't need to change it
-var mongodb = require('mongodb');
-var mongoClient = mongodb.MongoClient;
-// Connect to Mongo database
-mongoClient.connect('mongodb://localhost:27017/StockControl', function (err, db) {
-    console.log("Connected to MongoDB");
-    if (err)
-        throw err;
-    Data.SetDatabase(db);
-});
+//#region Sqlite3
+var sqlEscape = function (str) {
+    return (str + "").replace(/'/g, "''");
+};
+var sqlite3 = require('sqlite3').verbose();
 // Helper class for CRUD operations
 // Don't worry too much about how this works internally
 // Black box - ought to do its job.
@@ -139,71 +172,96 @@ var Data = (function () {
     function Data() {
     }
     // Store the Mongo DB object
-    Data.SetDatabase = function (db) {
+    Data.Init = function () {
+        var db = new sqlite3.Database('stockcontrol.sqlite3');
+        // Create Stock Table
+        db.run("CREATE TABLE if not exists Stock (Id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT NOT NULL, Quantity INTEGER NOT NULL, Reorder INTEGER, StockGroupId INTEGER);");
+        // Create Stock Groups Table
+        db.run("CREATE TABLE if not exists StockGroups (Id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT NOT NULL);");
+        // Create Stock Groups Table
+        db.run("CREATE TABLE if not exists Audit (Id INTEGER PRIMARY KEY AUTOINCREMENT, Title TEXT NOT NULL, Message TEXT NOT NULL, Timestamp TEXT NOT NULL);");
         Data._db = db;
     };
-    Data.Get = function (collection, query, callback) {
-        var col = Data._db.collection(collection);
-        query = query || {};
-        col.find(query).toArray(function (err, results) {
-            callback(results);
+    Data.Get = function (table, query, callback) {
+        Data._db.all("SELECT * FROM " + table + (query ? " WHERE " + query : ""), function (err, rows) {
+            callback(rows);
         });
     };
-    Data.GetTop = function (collection, query, count, callback) {
-        var col = Data._db.collection(collection);
-        query = query || {};
-        col.find(query).sort({ _id: -1 }).limit(count).toArray(function (err, results) {
-            callback(results);
+    Data.GetTop = function (table, query, count, callback) {
+        Data.Get(table, query, function (rows) {
+            callback(rows.slice(0, count));
         });
     };
-    Data.Insert = function (collection, data, callback) {
-        var col = Data._db.collection(collection);
-        col.insert(data, function (err, result) {
-            console.log("Inserted into the " + collection + " collection");
-            callback(result);
-        });
+    // Will work provided the object matches table structure
+    Data.Insert = function (table, data) {
+        if (data.length < 1)
+            return;
+        var props = "";
+        var j = 0;
+        for (var p in data[0])
+            props += (j++ == 0 ? "" : ",") + p;
+        for (var i = 0; i < data.length; i++) {
+            var vals = "";
+            j = 0;
+            for (var p in data[i]) {
+                vals += j++ == 0 ? "" : ",";
+                var val = data[i][p];
+                if (typeof (val) == "string")
+                    vals += "'" + val + "'";
+                else
+                    vals += val;
+            }
+            var query = "INSERT INTO " + table + "(" + props + ") VALUES (" + vals + ")";
+            Data._db.run(query);
+        }
     };
-    Data.Update = function (collection, query, setObj, callback) {
-        var col = Data._db.collection(collection);
-        query = query || {};
-        col.update(query, { $set: setObj }, function (err, result) {
-            console.log("Updated the " + collection + " collection");
-            callback(result);
-        });
+    Data.Update = function (table, set, where) {
+        var setStr = "";
+        var i = 0;
+        for (var prop in set) {
+            setStr += i++ == 0 ? "" : ",";
+            var val = set[prop];
+            setStr += prop + " = " + (typeof (val) == "string" ? "'" + sqlEscape(val) + "'" : val);
+        }
+        var query = "UPDATE " + table + " SET " + setStr + " WHERE " + where;
+        Data._db.run(query);
     };
-    Data.Delete = function (collection, query, callback) {
-        var col = Data._db.collection(collection);
-        query = query || {};
-        col.remove(query, function (err, result) {
-            console.log("Deleted from the " + collection + " collection");
-            callback(result);
-        });
+    Data.Delete = function (table, where) {
+        Data._db.run("DELETE FROM " + table + " WHERE " + where);
+    };
+    Data.Custom = function (query) {
+        query(Data._db);
     };
     return Data;
 })();
+Data.Init();
 //#endregion
 var StockControl = (function () {
     function StockControl() {
     }
     StockControl.StockGet = function (callback, name) {
-        Data.Get("Stock", name ? { Name: name } : null, function (result) {
+        Data.Get("Stock", name ? "Name = '" + name + "'" : null, function (result) {
             callback(result);
         });
     };
     StockControl.StockAdd = function (item, callback) {
-        Data.Insert("Stock", item, function (result) {
-            callback(result);
-        });
+        Data.Insert("Stock", [item]);
+        callback(item);
+    };
+    StockControl.StockRemove = function (item) {
+        Data.Delete("Stock", "Id = " + item.Id);
     };
     StockControl.StockGroupGet = function (callback, name) {
-        Data.Get("StockGroups", name ? { Name: name } : null, function (result) {
+        Data.Get("StockGroups", name ? "Name = '" + name + "'" : null, function (result) {
             callback(result);
         });
     };
     StockControl.StockGroupAdd = function (group, callback) {
-        Data.Insert("StockGroups", group, function (result) {
-            callback(result);
-        });
+        Data.Insert("StockGroups", [group]);
+        callback(group);
+    };
+    StockControl.StockGroupRemove = function (group) {
+        Data.Delete("StockGroups", "Id = " + group.Id);
     };
     return StockControl;
 })();
@@ -211,8 +269,8 @@ var Audit = (function () {
     function Audit() {
     }
     Audit.AddLog = function (title, entry) {
-        Data.Insert("Audit", { Title: title, Message: entry, Timestamp: new Date() }, function (result) {
-        });
+        var audit = { Title: title, Message: entry, Timestamp: new Date().toString() };
+        Data.Insert("Audit", [audit]);
     };
     Audit.GetLogEntries = function (type, callback) {
         Data.GetTop("Audit", type ? { Title: type } : null, 100, function (results) {
@@ -222,7 +280,10 @@ var Audit = (function () {
     Audit.Types = {
         StockAdd: "Stock Add",
         StockUpdate: "Stock Update",
-        StockGroupAdd: "Stock Group Add"
+        StockRemove: "Stock Delete",
+        StockGroupAdd: "Stock Group Add",
+        StockGroupUpdate: "Stock Group Update",
+        StockGroupRemove: "Stock Group Delete"
     };
     return Audit;
 })();

@@ -6,7 +6,7 @@ $("#txtName").on("keyup", function ()
 
   new Throttler("NameKeyUp", 800, function ()
   {
-    $.get("/stock-groups/" + encodeURIComponent($this.val()), function (res)
+    Api.Get("/api/stock-groups/" + encodeURIComponent($this.val()), function (res)
     {
       // Error if stock group found
       if (res.Success)

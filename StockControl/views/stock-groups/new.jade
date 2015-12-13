@@ -13,7 +13,7 @@ block content
     form.col-sm-6(action="/stock-groups/create", method="post")
         .form-group
             label.control-label(for="name") Name
-            input.form-control(type="text", name="name", id="txtName")
+            input#txtName.form-control(type="text", name="name")
             span#msgExisting.help-block(style="display: none") A stock group with this name already exists
         .form-group
             input#btnSubmit.btn.btn-default(type="submit")

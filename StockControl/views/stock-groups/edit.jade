@@ -1,0 +1,25 @@
+﻿extends ../layout
+
+block content
+
+    .page-header
+        h1 Edit Stock Groups
+        
+    table.table
+        thead
+            tr
+                th Name
+                th Update
+                th Delete
+        tbody
+            each group in groups
+                tr(id="row_#{group.Id}")
+                    td
+                        input.form-control(type="text", value="#{group.Name}", id="txtGroup_#{group.Id}")
+                    td
+                        button.btn.btn-default(onclick="sgUpdate(#{group.Id})") Update
+                    td
+                        button.btn.btn-danger(onclick="sgDelete(#{group.Id})") Delete
+
+block scripts
+    script(src="/js/stock-groups/edit.js")

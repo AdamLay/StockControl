@@ -20,6 +20,16 @@ Array.prototype.contains = function (predicate) {
             return true;
     return false;
 };
+Array.prototype.groupBy = function (prop) {
+    var groups = {};
+    for (var i = 0; i < this.length; i++) {
+        var p = this[i][prop];
+        if (!groups[p])
+            groups[p] = [];
+        groups[p].push(this[i]);
+    }
+    return groups;
+};
 //#endregion
 $(document).ready(function () {
     SocketManager.Init();
@@ -167,5 +177,40 @@ var Validation = (function () {
             $("#btnSubmit").removeAttr("disabled");
     };
     return Validation;
+})();
+var Api = (function () {
+    function Api() {
+    }
+    Api.Get = function (url, callback) {
+        console.log("Getting " + url);
+        $.get(url, function (data) {
+            console.log(url + " response: ", data);
+            callback(data);
+        });
+    };
+    Api.Update = function (url, data, callback) {
+        console.log("Updating " + url);
+        $.ajax({
+            url: url,
+            type: "PUT",
+            data: data,
+            success: function (data) {
+                console.log(url + " updated");
+                callback(data);
+            }
+        });
+    };
+    Api.Delete = function (url, callback) {
+        console.log("Deleting " + url);
+        $.ajax({
+            url: url,
+            type: "DELETE",
+            success: function (data) {
+                console.log(url + " deleted");
+                callback(data);
+            }
+        });
+    };
+    return Api;
 })();
 //# sourceMappingURL=main.js.map

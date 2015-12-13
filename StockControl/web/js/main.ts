@@ -5,6 +5,7 @@ interface Array<T>
   where: (predicate: (elem: T) => boolean) => Array<T>;
   first: (predicate: (elem: T) => boolean) => T;
   contains: (predicate: (elem: T) => boolean) => boolean;
+  groupBy: (prop: string) => Object;
 }
 
 Array.prototype.where = function(predicate: (elem) => boolean)
@@ -37,6 +38,23 @@ Array.prototype.contains = function(predicate: (elem) => boolean)
       return true;
 
   return false;
+};
+
+Array.prototype.groupBy = function (prop)
+{
+  var groups = {};
+
+  for (var i = 0; i < this.length; i++)
+  {
+    var p = this[i][prop];
+
+    if (!groups[p])
+      groups[p] = [];
+
+    groups[p].push(this[i]);
+  }
+
+  return groups;
 };
 
 //#endregion
@@ -258,5 +276,53 @@ class Validation
 
     if ($(".has-error").length == 0)
       $("#btnSubmit").removeAttr("disabled");
+  }
+}
+
+class Api
+{
+  public static Get(url: string, callback: (data: any) => void): void
+  {
+    console.log("Getting " + url);
+
+    $.get(url, function (data)
+    {
+      console.log(url + " response: ", data);
+
+      callback(data);
+    });
+  }
+
+  public static Update(url: string, data: any, callback: Function): void
+  {
+    console.log("Updating " + url);
+
+    $.ajax({
+      url: url,
+      type: "PUT",
+      data: data,
+      success: function (data)
+      {
+        console.log(url + " updated");
+
+        callback(data);
+      }
+    });
+  }
+
+  public static Delete(url: string, callback: Function): void
+  {
+    console.log("Deleting " + url);
+
+    $.ajax({
+      url: url,
+      type: "DELETE",
+      success: function (data)
+      {
+        console.log(url + " deleted");
+
+        callback(data);
+      }
+    });
   }
 }

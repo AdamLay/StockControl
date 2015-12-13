@@ -33,6 +33,7 @@
     <Content Include="views\index.jade" />
     <Content Include="views\layout.jade" />
     <Content Include="views\partials\stock-list.jade" />
+    <Content Include="views\stock-groups\edit.jade" />
     <Content Include="views\stock-groups\new.jade" />
     <Content Include="views\stock\index.jade" />
     <Content Include="views\stock\new.jade" />
@@ -49,6 +50,7 @@
     <Content Include="web\images\icons\minus.svg" />
     <Content Include="web\images\icons\remove.svg" />
     <Content Include="web\images\icons\settings.svg" />
+    <TypeScriptCompile Include="web\js\stock-groups\edit.ts" />
     <TypeScriptCompile Include="web\js\stock-groups\new.ts" />
     <TypeScriptCompile Include="web\js\stock\new.ts" />
   </ItemGroup>
