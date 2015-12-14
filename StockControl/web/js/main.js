@@ -264,6 +264,7 @@ var Inventory = (function () {
         });
     };
     Inventory.OnStockIssue = function (item) {
+        $(document).trigger("stock-issue", item);
     };
     return Inventory;
 })();

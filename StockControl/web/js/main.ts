@@ -421,7 +421,7 @@ class Inventory
 
   public static OnStockIssue(item: IStockItem): void
   {
-
+    $(document).trigger("stock-issue", item);
   }
 }
 

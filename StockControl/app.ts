@@ -120,7 +120,7 @@ app.post("/stock/create", function (req, res)
   });
 });
 
-//DELETE /Stock/1
+// DELETE /Stock/1
 app.delete("/stock/:id", function (req, res)
 {
   var id = req.params.id;
@@ -136,6 +136,32 @@ app.delete("/stock/:id", function (req, res)
   });
 });
 
+// GET
+app.get("/stock/edit/:id?", function (req, res)
+{
+  var id = req.params.id;
+
+  if (id)
+  {
+    StockControl.StockGet(function (results)
+    {
+      if (results.length != 1)
+      {
+        res.render("stock/edit-list");
+        return;
+      }
+
+      res.render("stock/edit", { item: results[0] });
+
+    }, parseInt(id));
+  }
+  else
+  {
+    res.render("stock/edit-list");
+  }
+});
+
+// GET
 app.get("/api/stock/issue/:id", function (req, res)
 {
   res.setHeader('Content-Type', 'application/json');
