@@ -1,4 +1,4 @@
-﻿var port = 1337;
+﻿var port = 80;
 var path = require("path");
 var express = require("express");
 var bodyParser = require("body-parser");

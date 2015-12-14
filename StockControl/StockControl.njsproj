@@ -23,6 +23,7 @@
     <Compile Include="web\js\stock\new.js" />
     <Content Include="compilerconfig.json" />
     <Content Include="package.json" />
+    <Content Include="Procfile" />
     <Content Include="README.md" />
     <Content Include="web\styles\timeline.css" />
     <TypeScriptCompile Include="app.ts" />
