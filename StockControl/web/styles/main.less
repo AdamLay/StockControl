@@ -33,3 +33,23 @@ body {
 main {
     padding-top: 60px;
 }
+
+#lstNotifications {
+    a {
+        cursor: pointer;
+
+        &.new {
+            background-color: fade(#d9edf7, 50%);
+        }
+    }
+}
+
+.stock-item h3.name {
+    margin-top: 0;
+}
+
+@import (inline) "timeline.css";
+
+.timeline-panel.focussed {
+    box-shadow: 0 1px 6px rgba(140,140,255,0.5) !important;
+}

@@ -31,59 +31,50 @@ Array.prototype.groupBy = function (prop) {
     return groups;
 };
 //#endregion
+//#region Helpers
+var formatDate = function (d) {
+    var now = new Date();
+    var str = "";
+    if (now.toLocaleDateString() == d.toLocaleDateString()) {
+        var diffSecs = (now - d) / 1000;
+        if (diffSecs < 60)
+            return Math.floor(diffSecs) + " second" + (Math.floor(diffSecs) == 1 ? "" : "s") + " ago";
+        var diffMins = diffSecs / 60;
+        if (diffMins < 60)
+            return Math.floor(diffMins) + " minute" + (Math.floor(diffMins) == 1 ? "" : "s") + " ago";
+        var diffHours = diffMins / 60;
+        return Math.floor(diffHours) + " hour" + (Math.floor(diffHours) == 1 ? "" : "s") + " ago";
+    }
+    else {
+        str += d.getHours() + ":" + d.getMinutes() + " ";
+        str += d.getDate() + "/" + (d.getMonth() + 1);
+    }
+    return str;
+};
+function alertTop(msg, success) {
+    var $pop = $("<div>", {
+        "class": "alert " + (success ? "alert-success" : "alert-danger"),
+        "text": new Date().toLocaleString() + " " + msg
+    });
+    $("main.container").prepend($pop);
+    setTimeout(function () {
+        $pop.slideUp(200, function () {
+            $pop.remove();
+        });
+    }, 3000);
+}
+function getQueryStringValue(key) {
+    key = key.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+    var regexS = "[\\?&]" + key + "=([^&#]*)";
+    var regex = new RegExp(regexS);
+    var results = regex.exec(window.location.href);
+    return results ? decodeURIComponent(results[1].replace(/\+/g, " ")) : null;
+}
+//#endregion
 $(document).ready(function () {
     SocketManager.Init();
-    //Inventory.StockGet();
+    Notifications.Init();
 });
-var Inventory = (function () {
-    function Inventory() {
-    }
-    Inventory.StockGet = function () {
-        // Emit the "stock get" event to the server
-        // Server will process the "stock get" event back again
-        // Then we'll end up in the OnStockGet function
-        SocketManager.Request("stock get");
-    };
-    // data: any should probably be something like data: Array<IStockItem>
-    // and then we could take advantage of strongly typed things
-    Inventory.OnStockGet = function (data) {
-        console.log(data);
-        // Get the html DOM element with id of stockList 
-        var $list = $("#stockList");
-        // Clear out its content, so there's nowt inside it
-        $list.html("");
-        // For each item in "data", which we know is an array of stock items
-        for (var i = 0; i < data.length; i++) {
-            // Easier to type item than data[i] lol
-            var item = data[i];
-            // Using JQuery, making a div element with class of "stock-item"
-            // this is essentially <div class="stock-item"></div>
-            var $item = $("<div>", {
-                "class": "stock-item"
-            });
-            // Appending more divs into our $item element
-            // The text property means inside the div element
-            // So in this case <div class="stock-desc">Foo</div>
-            $item.append($("<div>", { "class": "stock-desc", "text": item.Name }));
-            $item.append($("<div>", { "class": "stock-use" }));
-            $item.append($("<div>", { "class": "stock-qty", "text": item.Quantity }));
-            // Finally attaching the item into the stock list, which is already in the DOM
-            $list.append($item);
-        }
-    };
-    Inventory.OnStockUpdate = function () {
-    };
-    Inventory.OnStockAdd = function (data) {
-    };
-    return Inventory;
-})();
-var AuditLog = (function () {
-    function AuditLog() {
-    }
-    AuditLog.OnLogGet = function () {
-    };
-    return AuditLog;
-})();
 var SocketManager = (function () {
     function SocketManager() {
     }
@@ -94,21 +85,11 @@ var SocketManager = (function () {
         // the SocketManager.OnConnect will execute
         skt.on("connect", SocketManager.OnConnect);
         skt.on("disconnect", SocketManager.OnDisconnect);
-        // "stock get" is just an event we've made up
-        // From app.ts, in our server side code, whenever we emit the "stock get" event
-        // it'll run the function below... etc
-        skt.on("stock get", Inventory.OnStockGet);
-        skt.on("stock add", Inventory.OnStockAdd);
-        skt.on("stock update", Inventory.OnStockUpdate);
-        skt.on("log get", AuditLog.OnLogGet);
-        // Store our socket so we can use it later outside this function
-        // for emitting events
+        skt.on("notification", Notifications.OnNotification);
+        skt.on("stock issue", Inventory.OnStockIssue);
         SocketManager._socket = skt;
     };
     SocketManager.Emit = function (evt, data) {
-        SocketManager._socket.emit(evt, data);
-    };
-    SocketManager.Request = function (evt, data) {
         SocketManager._socket.emit(evt, data);
     };
     SocketManager.OnConnect = function () {
@@ -160,6 +141,7 @@ var Throttler = (function () {
     };
     return Throttler;
 })();
+//#endregion
 var Validation = (function () {
     function Validation() {
     }
@@ -188,6 +170,13 @@ var Api = (function () {
             callback(data);
         });
     };
+    Api.Post = function (url, data, callback) {
+        console.log("Posting " + url, data);
+        $.post(url, data, function (result) {
+            console.log(url + " response: ", result);
+            callback(result);
+        });
+    };
     Api.Update = function (url, data, callback) {
         console.log("Updating " + url);
         $.ajax({
@@ -212,5 +201,70 @@ var Api = (function () {
         });
     };
     return Api;
+})();
+var Notifications = (function () {
+    function Notifications() {
+    }
+    Notifications.Init = function () {
+        if ($("#lstNotifications").length > 0) {
+            Notifications.UpdateInterval = setInterval(function () {
+                $("#lstNotifications [data-time]").each(function () {
+                    var $this = $(this);
+                    var dt = new Date(parseFloat($this.attr("data-time")));
+                    $this.text(formatDate(dt));
+                });
+            }, 5000);
+        }
+    };
+    Notifications.OnNotification = function (data) {
+        var getIcon = function (name) {
+            var icon = "";
+            if (name.indexOf("Add") > -1)
+                icon = "plus";
+            else if (name.indexOf("Update") > -1)
+                icon = "pencil";
+            else if (name.indexOf("Issue") > -1)
+                icon = "gbp";
+            else if (name.indexOf("Delete") > -1)
+                icon = "ban";
+            return "fa fa-" + icon;
+        };
+        var time = new Date(data.Timestamp);
+        var $item = $("<a>", {
+            "class": "list-group-item new",
+            "text": " " + data.Title,
+            "style": "display:block"
+        });
+        var $icon = $("<i>", {
+            "class": getIcon(data.Title)
+        });
+        var $stamp = $("<span>", {
+            "class": "pull-right text-muted small",
+            "text": formatDate(time),
+            "data-time": time.getTime()
+        });
+        $item.prepend($icon);
+        $item.append($stamp);
+        $item.hide();
+        $("#lstNotifications").prepend($item);
+        $item.slideDown(200);
+        $item.on("mouseover", function () { $(this).removeClass("new"); });
+    };
+    return Notifications;
+})();
+var Inventory = (function () {
+    function Inventory() {
+    }
+    Inventory.IssueStock = function (id) {
+        var $item = $("[data-stockid=\"" + id + "\"]");
+        Api.Get("/api/stock/issue/" + id, function (data) {
+            if (!data.Success) {
+                alertTop(data.Message, data.Success);
+            }
+        });
+    };
+    Inventory.OnStockIssue = function (item) {
+    };
+    return Inventory;
 })();
 //# sourceMappingURL=main.js.map

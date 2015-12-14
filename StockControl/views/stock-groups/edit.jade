@@ -17,9 +17,13 @@ block content
                     td
                         input.form-control(type="text", value="#{group.Name}", id="txtGroup_#{group.Id}")
                     td
-                        button.btn.btn-default(onclick="sgUpdate(#{group.Id})") Update
+                        button.btn.btn-default(onclick="sgUpdate(#{group.Id})")
+                            i.fa.fa-pencil
+                            |  Update
                     td
-                        button.btn.btn-danger(onclick="sgDelete(#{group.Id})") Delete
+                        button.btn.btn-danger(onclick="sgDelete(#{group.Id})")
+                            i.fa.fa-trash-o
+                            |  Delete
 
 block scripts
     script(src="/js/stock-groups/edit.js")

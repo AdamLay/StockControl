@@ -24,8 +24,8 @@
     for (var i = 0; i < data.Results.length; i++)
     {
       var res = data.Results[i];
-
-      var $opt = $("<option>", { value: res._id, text: res.Name });
+      
+      var $opt = $("<option>", { "value": res.Id, "text": res.Name });
 
       $ddl.append($opt);
     }

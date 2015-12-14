@@ -1,33 +1,4 @@
-﻿* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-.clearfix:after {
-  visibility: hidden;
-  display: block;
-  font-size: 0;
-  content: " ";
-  clear: both;
-  height: 0;
-}
-html,
-body {
-  font-family: 'Open Sans', Arial, sans-serif;
-}
-main {
-  padding-top: 60px;
-}
-#lstNotifications a {
-  cursor: pointer;
-}
-#lstNotifications a.new {
-  background-color: rgba(217, 237, 247, 0.5);
-}
-.stock-item h3.name {
-  margin-top: 0;
-}
-.timeline {
+﻿.timeline {
     position: relative;
     padding: 20px 0 20px;
     list-style: none;
@@ -206,7 +177,4 @@ main {
         border-right-width: 14px;
         border-left-width: 0;
     }
-}
-.timeline-panel.focussed {
-  box-shadow: 0 1px 6px rgba(140, 140, 255, 0.5) !important;
 }

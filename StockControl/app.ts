@@ -6,6 +6,27 @@ var http = require('http');
 
 var app = express();
 
+//#region helpers
+
+var groupBy = function (arr, prop)
+{
+  var groups = {};
+
+  for (var i = 0; i < arr.length; i++)
+  {
+    var p = arr[i][prop];
+
+    if (!groups[p])
+      groups[p] = [];
+
+    groups[p].push(arr[i]);
+  }
+
+  return groups;
+};
+
+//#endregion
+
 // Set up view engine
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "jade");
@@ -16,12 +37,35 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 //#region Set up routing
 
-app.get("/", function (req, res) { res.render("index"); });
+app.get(["/", "/index"], function (req, res)
+{
+  StockControl.StockGet(function (stock)
+  {
+    var groups = groupBy(stock, "StockGroup");
+
+    Audit.GetLogEntries(null, function (audit)
+    {
+      res.render("index",
+        {
+          stockGroups: groups,
+          notifications: Audit.SortDesc(audit).slice(0, 6)
+        });
+    });
+  });
+});
 
 //#region Stock
 
 // GET
-app.get("/stock(/index)?", function (req, res) { res.render("stock/index") });
+app.get("/stock(/index)?", function (req, res)
+{
+  StockControl.StockGet(function (data)
+  {
+    var groups = groupBy(data, "StockGroup");
+
+    res.render("stock/index", { stockGroups: groups });
+  });
+});
 
 //GET /stock/Foo
 app.get("/api/stock/:id", function (req, res)
@@ -51,7 +95,7 @@ app.get("/stock/new", function (req, res)
 app.post("/stock/create", function (req, res)
 {
   var stockItem = {
-    Name: req.body.name,
+    Name: req.body.name.trim(),
     StockGroupId: req.body.group,
     Quantity: parseInt(req.body.quantity),
     Reorder: parseInt(req.body.reorder)
@@ -92,6 +136,39 @@ app.delete("/stock/:id", function (req, res)
   });
 });
 
+app.get("/api/stock/issue/:id", function (req, res)
+{
+  res.setHeader('Content-Type', 'application/json');
+
+  var id = parseInt(req.params.id);
+
+  StockControl.StockGet(function (results)
+  {
+    if (results.length !== 1)
+    {
+      res.send(JSON.stringify({ Success: false, Message: "Stock item not found" }));
+      return;
+    }
+
+    var item = results[0];
+
+    if (item.Quantity < 1)
+    {
+      res.send(JSON.stringify({ Success: false, Message: "There are no remaining items of type \"" + item.Name + "\"" }));
+      return;
+    }
+
+    Data.Update("Stock", { Quantity: --item.Quantity }, "Id = " + id);
+
+    Audit.AddLog(Audit.Types.StockIssue, "1 " + item.Name + " has been issued.");
+    
+    res.send(JSON.stringify({ Success: true, Quantity: item.Quantity }));
+
+    io.emit("stock issue", item);
+
+  }, id);
+});
+
 //#endregion
 
 //#region Stock Groups
@@ -106,7 +183,7 @@ app.get("/stock-groups/new", function (req, res)
 app.post("/stock-groups/create", function (req, res)
 {
   var stockGroup = {
-    Name: req.body.name
+    Name: req.body.name.trim()
   };
 
   var strGroup = JSON.stringify(stockGroup);
@@ -172,13 +249,29 @@ app.put("/stock-groups/:id", function (req, res)
 //DELETE
 app.delete("/stock-groups/:id", function (req, res)
 {
-  Data.Delete("StockGroups", "Id = " + sqlEscape(req.params.id));
-
-  Audit.AddLog(Audit.Types.StockGroupRemove, "Stock group removed: " + req.params.id);
+  var id = req.params.id;
 
   res.setHeader('Content-Type', 'application/json');
 
-  res.send(JSON.stringify({ Success: true }));
+  Data.Custom(function (db)
+  {
+    db.all("SELECT * FROM Stock WHERE StockGroupId = " + id, function (err, rows)
+    {
+      if (rows.length == 0)
+      {
+
+        Data.Delete("StockGroups", "Id = " + sqlEscape(id));
+
+        Audit.AddLog(Audit.Types.StockGroupRemove, "Stock group removed: " + id);
+
+        res.send(JSON.stringify({ Success: true, Message: "" }));
+      }
+      else
+      {
+        res.send(JSON.stringify({ Success: false, Message: "Cannot delete Stock Group with Stock Items still associated." }));
+      }
+    });
+  });
 });
 
 //#endregion
@@ -191,15 +284,10 @@ app.get("/audit(/index)?", function (req, res)
   Audit.GetLogEntries(null, function (results)
   {
     // Sort by date descending
-    results = results.sort(function (a, b)
-    {
-      var d1 = new Date(a.Timestamp);
-      var d2 = new Date(b.Timestamp);
+    results = Audit.SortDesc(results);
 
-      return d1 > d2 ? -1 : d2 > d1 ? 1 : 0;
-    });
-
-    res.render("audit/index", { audit: results });
+    // Return first 50 results
+    res.render("audit/index", { audit: results.slice(0, 50) });
   });
 });
 
@@ -224,34 +312,21 @@ server.listen(port, function ()
 
 var io = require('socket.io')(server);
 
-// This just established a "full duplex" two way communication channel (websockets) with the client
 io.on('connection', function (socket)
 {
-  // The socket object is what we'll use to attach to and sent events
-  
-  console.log('User connected');
+  console.log('User connected', socket.handshake.address);
 
-  // When the server receives a "stock get" event, it will run this function...
   socket.on("stock get", function (data)
   {
-    // The data parameter has any data in it that's been passed up from the client
-
     console.log("Stock get!");
 
-    // StockGet is a function that takes a callback function as a parameter
     StockControl.StockGet(function (result)
     {
-      // Now we're inside the callback function, and have access to the "result" object which has our stock in it
-
-      // The socket will emit a "stock get" event, so the client can pick up on it
       socket.emit("stock get", result);
 
     }, data ? data.Name : null);
   });
-
-  socket.emit
 });
-
 
 //#endregion
 
@@ -264,14 +339,11 @@ var sqlEscape = function (str)
 
 var sqlite3 = require('sqlite3').verbose();
 
-// Helper class for CRUD operations
-// Don't worry too much about how this works internally
-// Black box - ought to do its job.
 class Data
 {
+  // Sqlite3 Database
   private static _db;
 
-  // Store the Mongo DB object
   public static Init()
   {
     var db = new sqlite3.Database('stockcontrol.sqlite3');
@@ -357,7 +429,7 @@ class Data
     }
 
     var query = "UPDATE " + table + " SET " + setStr + " WHERE " + where
-
+    
     Data._db.run(query);
   }
 
@@ -378,11 +450,16 @@ Data.Init();
 
 class StockControl
 {
-  public static StockGet(callback: (result: Array<any>) => void, name?: string): void
+  public static StockGet(callback: (result: Array<any>) => void, name?: string | number): void
   {
-    Data.Get("Stock", name ? "Name = '" + name + "'" : null, function (result)
+    Data.Custom(function (db)
     {
-      callback(result);
+      var where = name ? " WHERE " + (typeof (name) == "number" ? "s.Id" : "s.Name") + " = '" + name + "'" : "";
+
+      db.all("SELECT s.Id, s.Name, s.Quantity, s.Reorder, sg.Name as 'StockGroup' FROM Stock s JOIN StockGroups sg ON s.StockGroupId = sg.Id" + where, function (err, rows)
+      {
+        callback(rows);
+      });
     });
   }
 
@@ -422,6 +499,7 @@ class StockControl
 class Audit
 {
   public static Types = {
+    StockIssue: "Stock Issue",
     StockAdd: "Stock Add",
     StockUpdate: "Stock Update",
     StockRemove: "Stock Delete",
@@ -435,6 +513,8 @@ class Audit
     var audit: IAuditEntry = { Title: title, Message: entry, Timestamp: new Date().toString() };
 
     Data.Insert("Audit", [audit]);
+
+    io.emit("notification", audit);
   }
 
   public static GetLogEntries(type: string, callback: Function)
@@ -442,6 +522,17 @@ class Audit
     Data.GetTop("Audit", type ? { Title: type } : null, 100, function (results)
     {
       callback(results);
+    });
+  }
+
+  public static SortDesc(arr: Array<IAuditEntry>): Array<IAuditEntry>
+  {
+    return arr.sort(function (a, b)
+    {
+      var d1 = new Date(a.Timestamp);
+      var d2 = new Date(b.Timestamp);
+
+      return d1 > d2 ? -1 : d2 > d1 ? 1 : 0;
     });
   }
 }

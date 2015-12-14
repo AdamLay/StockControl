@@ -1,4 +1,44 @@
-﻿doctype html
+﻿-
+    var getIcon = function(name) {
+
+        var icon = "";
+
+        if (name.indexOf("Add") > -1)
+            icon = "plus";
+
+        else if (name.indexOf("Update") > -1)
+            icon = "pencil";
+
+        else if (name.indexOf("Issue") > -1)
+            icon = "gbp";
+
+        else if (name.indexOf("Delete") > -1)
+            icon = "ban";
+
+        return "fa fa-" + icon;
+    }
+
+    var getColour = function(name) {
+
+        var col = "";
+
+        if (name.indexOf("Add") > -1)
+            col = "success";
+
+        else if (name.indexOf("Update") > -1)
+            col = "default";
+
+        else if (name.indexOf("Issue") > -1)
+            col = "info";
+
+        else if (name.indexOf("Delete") > -1)
+            col = "danger";
+
+        return col;
+
+    }
+
+doctype html
 html
   head
     meta(charset="utf-8")
@@ -8,6 +48,7 @@ html
 
     link(rel="stylesheet", type="text/css", href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css")
     link(rel="stylesheet", type="text/css", href="https://fonts.googleapis.com/css?family=Open+Sans:400,300,600")
+    link(rel="stylesheet", type="text/css", href="/styles/font-awesome/css/font-awesome.min.css")
     link(rel="stylesheet", type="text/css", href="/styles/main.css")
 
     script(src="//code.jquery.com/jquery-2.1.4.min.js")
@@ -16,7 +57,7 @@ html
 
   body
 
-    nav.navbar.navbar-inverse.navbar-fixed-top
+    nav.navbar.navbar-default.navbar-fixed-top
         .container
             .navbar-header
                 button.navbar-toggle.collapsed(type='button', data-toggle='collapse', data-target='#navbar', aria-expanded='false', aria-controls='navbar')
@@ -24,27 +65,45 @@ html
                     span.icon-bar
                     span.icon-bar
                     span.icon-bar
-                a.navbar-brand(href='/') Stock Control
+                a.navbar-brand(href='/index') Stock Control
             #navbar.collapse.navbar-collapse
                 ul.nav.navbar-nav.pull-right
                     li
-                        a(href='#') Home
+                        a(href='/index')
+                            i.fa.fa-home
+                            |  Home
                     li.dropdown
-                        a.dropdown-toggle(href='#', data-toggle='dropdown', role='button') Stock
+                        a.dropdown-toggle(href='#', data-toggle='dropdown', role='button')
+                            i.fa.fa-dropbox
+                            |  Stock
                             span.caret
                         ul.dropdown-menu
                             li.dropdown-header Stock Items
                             li
-                                a(href='/stock') View
+                                a(href='/stock')
+                                    span.pull-right
+                                        i.fa.fa-list
+                                    span View
                             li
-                                a(href='/stock/new') Add
+                                a(href='/stock/new')
+                                    span.pull-right
+                                        i.fa.fa-plus
+                                    span Add
                             li.dropdown-header Stock Groups
                             li
-                                a(href='/stock-groups/new') Add
+                                a(href='/stock-groups/new')
+                                    span.pull-right
+                                        i.fa.fa-plus
+                                    span Add
                             li
-                                a(href='/stock-groups/edit') Edit
+                                a(href='/stock-groups/edit')
+                                    span.pull-right
+                                        i.fa.fa-pencil
+                                    span Edit
                     li
-                        a(href='/audit') Audit Log
+                        a(href='/audit')
+                            i.fa.fa-book
+                            |  Audit Log
 
     main.container
         block content

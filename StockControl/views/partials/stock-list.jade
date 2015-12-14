@@ -1,1 +1,11 @@
-﻿#stockList.stock-list
+﻿.panel.panel-default
+    each group, name in stockGroups
+        .panel-heading #{name}
+        ul.list-group
+            each item in group
+                li.list-group-item.stock-item(data-stockid="#{item.Id}")
+                    button.btn.btn-primary.pull-right(onclick="Inventory.IssueStock(#{item.Id})", title="Release 1 item from inventory", disabled=(item.Quantity == 0 ? 'disabled' : null))
+                        i.fa.fa-gbp
+                        |  Issue
+                    h3.name #{item.Name}
+                    .quantity In Stock: #{item.Quantity}
