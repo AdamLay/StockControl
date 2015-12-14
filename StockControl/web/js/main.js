@@ -87,6 +87,8 @@ var SocketManager = (function () {
         skt.on("disconnect", SocketManager.OnDisconnect);
         skt.on("notification", Notifications.OnNotification);
         skt.on("stock issue", Inventory.OnStockIssue);
+        skt.on("stock add", Inventory.OnStockAdd);
+        skt.on("stock-group update", StockGroups.OnStockGroupUpdate);
         SocketManager._socket = skt;
     };
     SocketManager.Emit = function (evt, data) {
@@ -236,7 +238,8 @@ var Notifications = (function () {
         var $item = $("<a>", {
             "class": "list-group-item new",
             "text": " " + data.Title,
-            "style": "display:block"
+            "style": "display:block",
+            "href": "/audit?id=" + data.Id
         });
         var $icon = $("<i>", {
             "class": getIcon(data.Title)
@@ -283,7 +286,20 @@ var Inventory = (function () {
     Inventory.OnStockIssue = function (item) {
         Inventory.StockIssueEvent.Trigger(item);
     };
+    Inventory.OnStockAdd = function (item) {
+        Inventory.StockAddEvent.Trigger(item);
+    };
     Inventory.StockIssueEvent = new PublishedEvent();
+    Inventory.StockAddEvent = new PublishedEvent();
     return Inventory;
+})();
+var StockGroups = (function () {
+    function StockGroups() {
+    }
+    StockGroups.OnStockGroupUpdate = function (group) {
+        StockGroups.StockGroupUpdateEvent.Trigger(group);
+    };
+    StockGroups.StockGroupUpdateEvent = new PublishedEvent();
+    return StockGroups;
 })();
 //# sourceMappingURL=main.js.map

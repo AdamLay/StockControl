@@ -7,6 +7,7 @@ interface IStockItem extends IModel
 {
   Name: string;
   StockGroupId: number;
+  StockGroup?: string;
   Quantity: number;
   Reorder: number;
 }

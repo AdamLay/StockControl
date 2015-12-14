@@ -150,6 +150,9 @@ class SocketManager
     skt.on("notification", Notifications.OnNotification);
 
     skt.on("stock issue", Inventory.OnStockIssue);
+    skt.on("stock add", Inventory.OnStockAdd);
+
+    skt.on("stock-group update", StockGroups.OnStockGroupUpdate);
 
     SocketManager._socket = skt;
   }
@@ -383,7 +386,8 @@ class Notifications
     var $item = $("<a>", {
       "class": "list-group-item new",
       "text": " " + data.Title,
-      "style": "display:block"
+      "style": "display:block",
+      "href": "/audit?id=" + data.Id
     });
 
     var $icon = $("<i>", {
@@ -448,5 +452,21 @@ class Inventory
   {
     Inventory.StockIssueEvent.Trigger(item);
   }
+
+  public static StockAddEvent = new PublishedEvent();
+
+  public static OnStockAdd(item: IStockItem): void
+  {
+    Inventory.StockAddEvent.Trigger(item);
+  }
 }
 
+class StockGroups
+{
+  public static StockGroupUpdateEvent = new PublishedEvent();
+
+  public static OnStockGroupUpdate(group: IStockGroup): void
+  {
+    StockGroups.StockGroupUpdateEvent.Trigger(group);
+  }
+}

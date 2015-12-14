@@ -1,10 +1,10 @@
 ﻿- var editMode = editMode || false;
 
 .panel.panel-default
-    each group, name in stockGroups
-        .panel-heading #{name}
-        ul.list-group
-            each item in group
+    each group, key in stockGroups
+        .panel-heading(data-groupid="#{key}") #{group.Name}
+        ul.list-group(data-groupid="#{key}")
+            each item in group.Items
                 li.list-group-item.stock-item(data-stockid="#{item.Id}")
                     button.btn.btn-primary.pull-right(onclick="Inventory.IssueStock(#{item.Id})", title="Release 1 item from inventory", disabled=(item.Quantity == 0 ? 'disabled' : null))
                         i.fa.fa-gbp
@@ -12,16 +12,4 @@
                     h3.name #{item.Name}
                     .quantity In Stock: #{item.Quantity}
 
-script.
-    $(document).ready(function() {
-        
-        Inventory.StockIssueEvent.Subscribe(function (data)
-        {
-            var $item = $(".stock-item[data-stockid=\"" + data.Id + "\"]");
-
-            $item.find(".quantity").text("In Stock: " + data.Quantity);
-
-            if (data.Quantity < 1)
-                $item.find("button").attr("disabled", "disabled");
-        });
-    });
+script(src="/js/stock-list.js")

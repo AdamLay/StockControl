@@ -58,6 +58,7 @@
     <Content Include="web\images\icons\settings.svg" />
     <TypeScriptCompile Include="web\js\stock-groups\edit.ts" />
     <TypeScriptCompile Include="web\js\stock-groups\new.ts" />
+    <TypeScriptCompile Include="web\js\stock-list.ts" />
     <TypeScriptCompile Include="web\js\stock\new.ts" />
   </ItemGroup>
   <ItemGroup>

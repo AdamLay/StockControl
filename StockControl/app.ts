@@ -8,7 +8,7 @@ var app = express();
 
 //#region helpers
 
-var groupBy = function (arr, prop)
+var groupBy = function (arr, prop, nameProp)
 {
   var groups = {};
 
@@ -17,9 +17,9 @@ var groupBy = function (arr, prop)
     var p = arr[i][prop];
 
     if (!groups[p])
-      groups[p] = [];
+      groups[p] = { Name: arr[i][nameProp], Items: [] };
 
-    groups[p].push(arr[i]);
+    groups[p].Items.push(arr[i]);
   }
 
   return groups;
@@ -41,7 +41,7 @@ app.get(["/", "/index"], function (req, res)
 {
   StockControl.StockGet(function (stock: Array<IStockItem>)
   {
-    var groups = groupBy(stock, "StockGroup");
+    var groups = groupBy(stock, "StockGroupId", "StockGroup");
 
     Audit.GetLogEntries(null, function (audit)
     {
@@ -62,7 +62,7 @@ app.get("/stock(/index)?", function (req, res)
 {
   StockControl.StockGet(function (data)
   {
-    var groups = groupBy(data, "StockGroup");
+    var groups = groupBy(data, "StockGroupId", "StockGroup");
 
     res.render("stock/index", { stockGroups: groups });
   });
@@ -115,9 +115,12 @@ app.post("/stock/create", function (req, res)
   {
     Audit.AddLog(Audit.Types.StockAdd, "Stock item added: " + strItem);
 
-    io.sockets.emit("stock add", stockItem);
+    StockControl.StockGet(function (result)
+    {
+      io.sockets.emit("stock add", result[0]);
 
-    res.redirect(303, "/stock/new?success=true");
+      res.redirect(303, "/stock/new?success=true");
+    }, stockItem.Name);
   });
 });
 
@@ -275,13 +278,20 @@ app.get("/stock-groups/edit", function (req, res)
 //PUT
 app.put("/stock-groups/:id", function (req, res)
 {
-  Data.Update("StockGroups", { Name: req.body.Name }, "Id = " + req.params.id);
+  var grp: IStockGroup = {
+    Id: parseInt(req.params.id),
+    Name: req.body.Name.trim()
+  };
 
-  Audit.AddLog(Audit.Types.StockGroupUpdate, "Stock group updated: " + req.params.id + " = " + req.body.Name);
+  Data.Update("StockGroups", { Name: grp.Name }, "Id = " + grp.Id);
+
+  Audit.AddLog(Audit.Types.StockGroupUpdate, "Stock group updated: " + grp.Id + " = " + grp.Name);
 
   res.setHeader('Content-Type', 'application/json');
 
   res.send(JSON.stringify({ Success: true }));
+
+  io.emit("stock-group update", grp);
 });
 
 //DELETE
@@ -494,7 +504,7 @@ class StockControl
     {
       var where = name ? " WHERE " + (typeof (name) == "number" ? "s.Id" : "s.Name") + " = '" + name + "'" : "";
 
-      db.all("SELECT s.Id, s.Name, s.Quantity, s.Reorder, sg.Name as 'StockGroup' FROM Stock s JOIN StockGroups sg ON s.StockGroupId = sg.Id" + where, function (err, rows)
+      db.all("SELECT s.Id, s.Name, s.Quantity, s.Reorder, s.StockGroupId, sg.Name as 'StockGroup' FROM Stock s JOIN StockGroups sg ON s.StockGroupId = sg.Id" + where, function (err, rows)
       {
         callback(rows);
       });
