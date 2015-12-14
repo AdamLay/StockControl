@@ -1,4 +1,6 @@
-﻿.panel.panel-default
+﻿- var editMode = editMode || false;
+
+.panel.panel-default
     each group, name in stockGroups
         .panel-heading #{name}
         ul.list-group
@@ -9,3 +11,17 @@
                         |  Issue
                     h3.name #{item.Name}
                     .quantity In Stock: #{item.Quantity}
+
+script.
+    $(document).ready(function() {
+        
+        Inventory.StockIssueEvent.Subscribe(function (data)
+        {
+            var $item = $(".stock-item[data-stockid=\"" + data.Id + "\"]");
+
+            $item.find(".quantity").text("In Stock: " + data.Quantity);
+
+            if (data.Quantity < 1)
+                $item.find("button").attr("disabled", "disabled");
+        });
+    });

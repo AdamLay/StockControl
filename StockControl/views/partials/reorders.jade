@@ -1,0 +1,7 @@
+﻿.panel.panel-warning
+    .panel-heading
+        i.fa.fa-bell
+        |  Reorders Needed
+    #lstReorders.list-group
+        each item in reorders
+            a.list-group-item #{item.Name + ' (' + item.Quantity + ') remaining'}

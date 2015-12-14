@@ -159,6 +159,11 @@ class SocketManager
     SocketManager._socket.emit(evt, data);
   }
 
+  public static Register(evt: string, handler: (data: any) => void): void
+  {
+    SocketManager._socket.on(evt, handler);
+  }
+
   public static OnConnect(): void
   {
     // What do we want to do when we're successfully connected?
@@ -398,9 +403,27 @@ class Notifications
 
     $("#lstNotifications").prepend($item);
 
+    $("#lstNotifications a").last().slideUp(200, function () { $(this).remove(); });
+
     $item.slideDown(200);
 
     $item.on("mouseover", function () { $(this).removeClass("new"); });
+  }
+}
+
+class PublishedEvent
+{
+  private _handlers: Array<Function> = [];
+
+  public Subscribe(handler: (data: any) => void): void
+  {
+    this._handlers.push(handler);
+  }
+
+  public Trigger(data: any): void
+  {
+    for (var i = 0; i < this._handlers.length; i++)
+      this._handlers[i](data);
   }
 }
 
@@ -418,10 +441,12 @@ class Inventory
       }
     });
   }
+  
+  public static StockIssueEvent = new PublishedEvent();
 
   public static OnStockIssue(item: IStockItem): void
   {
-    $(document).trigger("stock-issue", item);
+    Inventory.StockIssueEvent.Trigger(item);
   }
 }
 

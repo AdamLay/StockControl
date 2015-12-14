@@ -29,6 +29,7 @@ app.get(["/", "/index"], function (req, res) {
         Audit.GetLogEntries(null, function (audit) {
             res.render("index", {
                 stockGroups: groups,
+                reorders: stock.filter(function (stk) { return stk.Quantity <= stk.Reorder; }),
                 notifications: Audit.SortDesc(audit).slice(0, 6)
             });
         });
@@ -117,10 +118,16 @@ app.get("/api/stock/issue/:id", function (req, res) {
             res.send(JSON.stringify({ Success: false, Message: "There are no remaining items of type \"" + item.Name + "\"" }));
             return;
         }
+        // Update in database
         Data.Update("Stock", { Quantity: --item.Quantity }, "Id = " + id);
+        // Add audit log
         Audit.AddLog(Audit.Types.StockIssue, "1 " + item.Name + " has been issued.");
+        // Send response
         res.send(JSON.stringify({ Success: true, Quantity: item.Quantity }));
+        // Trigger stock issue event
         io.emit("stock issue", item);
+        if (item.Quantity <= item.Reorder) {
+        }
     }, id);
 });
 //#endregion

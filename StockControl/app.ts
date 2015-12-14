@@ -39,7 +39,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 app.get(["/", "/index"], function (req, res)
 {
-  StockControl.StockGet(function (stock)
+  StockControl.StockGet(function (stock: Array<IStockItem>)
   {
     var groups = groupBy(stock, "StockGroup");
 
@@ -48,6 +48,7 @@ app.get(["/", "/index"], function (req, res)
       res.render("index",
         {
           stockGroups: groups,
+          reorders: stock.filter(function (stk) { return stk.Quantity <= stk.Reorder; }),
           notifications: Audit.SortDesc(audit).slice(0, 6)
         });
     });
@@ -176,7 +177,7 @@ app.get("/api/stock/issue/:id", function (req, res)
       return;
     }
 
-    var item = results[0];
+    var item: IStockItem = results[0];
 
     if (item.Quantity < 1)
     {
@@ -184,13 +185,24 @@ app.get("/api/stock/issue/:id", function (req, res)
       return;
     }
 
+    // Update in database
     Data.Update("Stock", { Quantity: --item.Quantity }, "Id = " + id);
-
+    
+    // Add audit log
     Audit.AddLog(Audit.Types.StockIssue, "1 " + item.Name + " has been issued.");
     
+    // Send response
     res.send(JSON.stringify({ Success: true, Quantity: item.Quantity }));
 
+    // Trigger stock issue event
     io.emit("stock issue", item);
+
+    if (item.Quantity <= item.Reorder)
+    {
+      // Add Audit
+
+      // Fire event
+    }
 
   }, id);
 });

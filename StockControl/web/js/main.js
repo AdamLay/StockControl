@@ -92,6 +92,9 @@ var SocketManager = (function () {
     SocketManager.Emit = function (evt, data) {
         SocketManager._socket.emit(evt, data);
     };
+    SocketManager.Register = function (evt, handler) {
+        SocketManager._socket.on(evt, handler);
+    };
     SocketManager.OnConnect = function () {
         // What do we want to do when we're successfully connected?
         // Probably get a list of stock
@@ -247,10 +250,24 @@ var Notifications = (function () {
         $item.append($stamp);
         $item.hide();
         $("#lstNotifications").prepend($item);
+        $("#lstNotifications a").last().slideUp(200, function () { $(this).remove(); });
         $item.slideDown(200);
         $item.on("mouseover", function () { $(this).removeClass("new"); });
     };
     return Notifications;
+})();
+var PublishedEvent = (function () {
+    function PublishedEvent() {
+        this._handlers = [];
+    }
+    PublishedEvent.prototype.Subscribe = function (handler) {
+        this._handlers.push(handler);
+    };
+    PublishedEvent.prototype.Trigger = function (data) {
+        for (var i = 0; i < this._handlers.length; i++)
+            this._handlers[i](data);
+    };
+    return PublishedEvent;
 })();
 var Inventory = (function () {
     function Inventory() {
@@ -264,8 +281,9 @@ var Inventory = (function () {
         });
     };
     Inventory.OnStockIssue = function (item) {
-        $(document).trigger("stock-issue", item);
+        Inventory.StockIssueEvent.Trigger(item);
     };
+    Inventory.StockIssueEvent = new PublishedEvent();
     return Inventory;
 })();
 //# sourceMappingURL=main.js.map

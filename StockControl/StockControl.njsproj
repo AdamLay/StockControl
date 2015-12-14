@@ -25,6 +25,7 @@
     <Content Include="package.json" />
     <Content Include="Procfile" />
     <Content Include="README.md" />
+    <Content Include="views\partials\reorders.jade" />
     <Content Include="views\stock\edit-list.jade" />
     <Content Include="views\stock\edit.jade" />
     <Content Include="web\styles\timeline.css" />
