@@ -210,3 +210,8 @@ main {
 .timeline-panel.focussed {
   box-shadow: 0 1px 6px rgba(140, 140, 255, 0.5) !important;
 }
+.timeline-body > p {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  word-wrap: break-word;
+}

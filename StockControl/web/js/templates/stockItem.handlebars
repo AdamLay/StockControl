@@ -1,0 +1,7 @@
+﻿<li class="list-group-item stock-item" data-stockid="{{item.Id}}">
+    <button class="btn btn-primary pull-right" onclick="Inventory.IssueStock({{item.Id}})" title="Release 1 item from inventory" {{disabled}}>
+        <i class="fa fa-gbp"></i> Issue
+    </button>
+    <h3 class="name">{{item.Name}}</h3>
+    <div class="quantity">In Stock: {{item.Quantity}}</div>
+</li>

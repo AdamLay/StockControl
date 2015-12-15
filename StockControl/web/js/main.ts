@@ -91,7 +91,7 @@ var formatDate = function (d: any)
   }
 
   return str;
-}
+};
 
 function alertTop(msg: string, success: boolean)
 {
@@ -121,6 +121,29 @@ function getQueryStringValue(key: string)
 
   return results ? decodeURIComponent(results[1].replace(/\+/g, " ")) : null;
 }
+
+var getIcon = function (name)
+{
+  var icon = "";
+
+  if (name.indexOf("Add") > -1)
+    icon = "plus";
+
+  else if (name.indexOf("Update") > -1)
+    icon = "pencil";
+
+  else if (name.indexOf("Issue") > -1)
+    icon = "gbp";
+
+  else if (name.indexOf("Delete") > -1)
+    icon = "ban";
+
+  return "fa fa-" + icon;
+};
+
+declare var Handlebars: any;
+
+Handlebars.registerHelper();
 
 //#endregion
 
@@ -338,6 +361,22 @@ class Api
   }
 }
 
+class PublishedEvent<T>
+{
+  private _handlers: Array<(data: T) => void> = [];
+
+  public Subscribe(handler: (data: T) => void): void
+  {
+    this._handlers.push(handler);
+  }
+
+  public Trigger(data: T): void
+  {
+    for (var i = 0; i < this._handlers.length; i++)
+      this._handlers[i](data);
+  }
+}
+
 class Notifications
 {
   public static UpdateInterval: any;
@@ -360,74 +399,11 @@ class Notifications
     }
   }
 
+  public static NotificationEvent = new PublishedEvent<IAuditEntry>();
+
   public static OnNotification(data: IAuditEntry): void
   {
-    var getIcon = function (name)
-    {
-      var icon = "";
-
-      if (name.indexOf("Add") > -1)
-        icon = "plus";
-
-      else if (name.indexOf("Update") > -1)
-        icon = "pencil";
-
-      else if (name.indexOf("Issue") > -1)
-        icon = "gbp";
-
-      else if (name.indexOf("Delete") > -1)
-        icon = "ban";
-
-      return "fa fa-" + icon;
-    }
-
-    var time = new Date(data.Timestamp);
-
-    var $item = $("<a>", {
-      "class": "list-group-item new",
-      "text": " " + data.Title,
-      "style": "display:block",
-      "href": "/audit?id=" + data.Id
-    });
-
-    var $icon = $("<i>", {
-      "class": getIcon(data.Title)
-    });
-
-    var $stamp = $("<span>", {
-      "class": "pull-right text-muted small",
-      "text": formatDate(time),
-      "data-time": time.getTime()
-    });
-
-    $item.prepend($icon);
-    $item.append($stamp);
-
-    $item.hide();
-
-    $("#lstNotifications").prepend($item);
-
-    $("#lstNotifications a").last().slideUp(200, function () { $(this).remove(); });
-
-    $item.slideDown(200);
-
-    $item.on("mouseover", function () { $(this).removeClass("new"); });
-  }
-}
-
-class PublishedEvent
-{
-  private _handlers: Array<Function> = [];
-
-  public Subscribe(handler: (data: any) => void): void
-  {
-    this._handlers.push(handler);
-  }
-
-  public Trigger(data: any): void
-  {
-    for (var i = 0; i < this._handlers.length; i++)
-      this._handlers[i](data);
+    Notifications.NotificationEvent.Trigger(data);
   }
 }
 
@@ -446,14 +422,14 @@ class Inventory
     });
   }
   
-  public static StockIssueEvent = new PublishedEvent();
+  public static StockIssueEvent = new PublishedEvent<IStockItem>();
 
   public static OnStockIssue(item: IStockItem): void
   {
     Inventory.StockIssueEvent.Trigger(item);
   }
 
-  public static StockAddEvent = new PublishedEvent();
+  public static StockAddEvent = new PublishedEvent<IStockItem>();
 
   public static OnStockAdd(item: IStockItem): void
   {
@@ -463,7 +439,7 @@ class Inventory
 
 class StockGroups
 {
-  public static StockGroupUpdateEvent = new PublishedEvent();
+  public static StockGroupUpdateEvent = new PublishedEvent<IStockGroup>();
 
   public static OnStockGroupUpdate(group: IStockGroup): void
   {

@@ -19,8 +19,6 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
   <ItemGroup>
     <Compile Include="views\partials\notifications.jade" />
-    <Compile Include="web\js\stock-groups\new.js" />
-    <Compile Include="web\js\stock\new.js" />
     <Content Include="compilerconfig.json" />
     <Content Include="package.json" />
     <Content Include="Procfile" />
@@ -28,6 +26,7 @@
     <Content Include="views\partials\reorders.jade" />
     <Content Include="views\stock\edit-list.jade" />
     <Content Include="views\stock\edit.jade" />
+    <Content Include="web\js\templates\stockItem.handlebars" />
     <Content Include="web\styles\timeline.css" />
     <TypeScriptCompile Include="app.ts" />
     <Compile Include="app.js" />
@@ -45,11 +44,11 @@
     <Content Include="views\stock\new.jade" />
     <TypeScriptCompile Include="d.ts\serve-static.d.ts" />
     <TypeScriptCompile Include="StockControl.d.ts" />
+    <TypeScriptCompile Include="web\js\audit\index.ts" />
+    <TypeScriptCompile Include="web\js\components\notifications.ts" />
     <TypeScriptCompile Include="web\js\main.ts" />
     <Compile Include="web\js\main.js" />
-    <Content Include="web\styles\main.css" />
     <Content Include="web\styles\main.less" />
-    <Content Include="web\styles\main.min.css" />
     <Content Include="web\images\icons\close.svg" />
     <Content Include="web\images\icons\eject.svg" />
     <Content Include="web\images\icons\menu.svg" />
@@ -58,7 +57,7 @@
     <Content Include="web\images\icons\settings.svg" />
     <TypeScriptCompile Include="web\js\stock-groups\edit.ts" />
     <TypeScriptCompile Include="web\js\stock-groups\new.ts" />
-    <TypeScriptCompile Include="web\js\stock-list.ts" />
+    <TypeScriptCompile Include="web\js\components\stock-list.ts" />
     <TypeScriptCompile Include="web\js\stock\new.ts" />
   </ItemGroup>
   <ItemGroup>
@@ -72,6 +71,9 @@
     <Folder Include="web\images" />
     <Folder Include="web\images\icons" />
     <Folder Include="web\js" />
+    <Folder Include="web\js\components\" />
+    <Folder Include="web\js\audit\" />
+    <Folder Include="web\js\templates\" />
     <Folder Include="web\js\stock-groups\" />
     <Folder Include="web\js\stock\" />
     <Folder Include="web\styles" />

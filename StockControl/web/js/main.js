@@ -70,6 +70,19 @@ function getQueryStringValue(key) {
     var results = regex.exec(window.location.href);
     return results ? decodeURIComponent(results[1].replace(/\+/g, " ")) : null;
 }
+var getIcon = function (name) {
+    var icon = "";
+    if (name.indexOf("Add") > -1)
+        icon = "plus";
+    else if (name.indexOf("Update") > -1)
+        icon = "pencil";
+    else if (name.indexOf("Issue") > -1)
+        icon = "gbp";
+    else if (name.indexOf("Delete") > -1)
+        icon = "ban";
+    return "fa fa-" + icon;
+};
+Handlebars.registerHelper();
 //#endregion
 $(document).ready(function () {
     SocketManager.Init();
@@ -207,6 +220,19 @@ var Api = (function () {
     };
     return Api;
 })();
+var PublishedEvent = (function () {
+    function PublishedEvent() {
+        this._handlers = [];
+    }
+    PublishedEvent.prototype.Subscribe = function (handler) {
+        this._handlers.push(handler);
+    };
+    PublishedEvent.prototype.Trigger = function (data) {
+        for (var i = 0; i < this._handlers.length; i++)
+            this._handlers[i](data);
+    };
+    return PublishedEvent;
+})();
 var Notifications = (function () {
     function Notifications() {
     }
@@ -222,55 +248,10 @@ var Notifications = (function () {
         }
     };
     Notifications.OnNotification = function (data) {
-        var getIcon = function (name) {
-            var icon = "";
-            if (name.indexOf("Add") > -1)
-                icon = "plus";
-            else if (name.indexOf("Update") > -1)
-                icon = "pencil";
-            else if (name.indexOf("Issue") > -1)
-                icon = "gbp";
-            else if (name.indexOf("Delete") > -1)
-                icon = "ban";
-            return "fa fa-" + icon;
-        };
-        var time = new Date(data.Timestamp);
-        var $item = $("<a>", {
-            "class": "list-group-item new",
-            "text": " " + data.Title,
-            "style": "display:block",
-            "href": "/audit?id=" + data.Id
-        });
-        var $icon = $("<i>", {
-            "class": getIcon(data.Title)
-        });
-        var $stamp = $("<span>", {
-            "class": "pull-right text-muted small",
-            "text": formatDate(time),
-            "data-time": time.getTime()
-        });
-        $item.prepend($icon);
-        $item.append($stamp);
-        $item.hide();
-        $("#lstNotifications").prepend($item);
-        $("#lstNotifications a").last().slideUp(200, function () { $(this).remove(); });
-        $item.slideDown(200);
-        $item.on("mouseover", function () { $(this).removeClass("new"); });
+        Notifications.NotificationEvent.Trigger(data);
     };
+    Notifications.NotificationEvent = new PublishedEvent();
     return Notifications;
-})();
-var PublishedEvent = (function () {
-    function PublishedEvent() {
-        this._handlers = [];
-    }
-    PublishedEvent.prototype.Subscribe = function (handler) {
-        this._handlers.push(handler);
-    };
-    PublishedEvent.prototype.Trigger = function (data) {
-        for (var i = 0; i < this._handlers.length; i++)
-            this._handlers[i](data);
-    };
-    return PublishedEvent;
 })();
 var Inventory = (function () {
     function Inventory() {
