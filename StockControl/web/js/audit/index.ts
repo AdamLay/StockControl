@@ -11,20 +11,16 @@
 
   Notifications.NotificationEvent.Subscribe(function (data: IAuditEntry)
   {
-    console.log(data);
-
-    var invert = !$(".timeline li").first().hasClass("timeline-inverted");
-
     var $log = $(Handlebars.templates["auditLog"](data));
 
-    if (invert)
+    if (!$(".timeline li").first().hasClass("timeline-inverted"))
       $log.addClass("timeline-inverted");
 
-    var $badge = $log.children(".timeline-badge");
-
-    $badge.addClass(Helpers.GetColour(data.Title));
-
-    $badge.children("i").addClass(Helpers.GetIcon(data.Title));
+    $log
+      .children(".timeline-badge")
+      .addClass(Helpers.GetColour(data.Title))
+      .children("i")
+      .addClass(Helpers.GetIcon(data.Title));
 
     $(".timeline").prepend($log);
   });
