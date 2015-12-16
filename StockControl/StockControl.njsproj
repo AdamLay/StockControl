@@ -4,7 +4,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{51dfb5a7-0f28-457d-96a2-0e65a2ca3ea0}</ProjectGuid>
-    <ProjectView>ProjectFiles</ProjectView>
+    <ProjectView>ShowAllFiles</ProjectView>
     <StartupFile>app.ts</StartupFile>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -27,11 +27,10 @@
     <Content Include="views\partials\reorders.jade" />
     <Content Include="views\stock\edit-list.jade" />
     <Content Include="views\stock\edit.jade" />
-    <Content Include="web\js\templates\auditLog.handlebars" />
-    <Content Include="web\js\templates\stockItem.handlebars" />
+    <Content Include="web\js\templates\auditLog.hbs" />
+    <Content Include="web\js\templates\stockItem.hbs" />
     <Content Include="web\styles\timeline.css" />
     <TypeScriptCompile Include="app.ts" />
-    <Compile Include="app.js" />
     <TypeScriptCompile Include="d.ts\express.d.ts" />
     <TypeScriptCompile Include="d.ts\jquery.d.ts" />
     <TypeScriptCompile Include="d.ts\mongodb.d.ts" />
@@ -50,7 +49,6 @@
     <TypeScriptCompile Include="web\js\components\notifications.ts" />
     <TypeScriptCompile Include="web\js\Helpers.ts" />
     <TypeScriptCompile Include="web\js\main.ts" />
-    <Compile Include="web\js\main.js" />
     <Content Include="web\styles\main.less" />
     <Content Include="web\images\icons\close.svg" />
     <Content Include="web\images\icons\eject.svg" />
