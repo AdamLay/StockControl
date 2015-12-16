@@ -29,6 +29,7 @@
     <Content Include="views\stock\edit.jade" />
     <Content Include="web\js\templates\auditLog.hbs" />
     <Content Include="web\js\templates\notification.hbs" />
+    <Content Include="web\js\templates\stockGroup.hbs" />
     <Content Include="web\js\templates\stockItem.hbs" />
     <Content Include="web\styles\timeline.css" />
     <TypeScriptCompile Include="app.ts" />

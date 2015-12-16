@@ -355,6 +355,17 @@ this["Templates"]["notification"] = Handlebars.template({"compiler":[7,">= 4.0.0
     + alias4(helpers["valueOf"].call(alias1,(depth0 != null ? depth0.GetFormattedTimestamp : depth0),{"name":"valueOf","hash":{},"data":data}))
     + "</span>\r\n</a>";
 },"useData":true});
+this["Templates"]["stockGroup"] = Handlebars.template({"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
+    var helper, alias1=depth0 != null ? depth0 : {}, alias2=helpers.helperMissing, alias3="function", alias4=container.escapeExpression;
+
+  return "<div data-groupid=\""
+    + alias4(((helper = (helper = helpers.StockGroupId || (depth0 != null ? depth0.StockGroupId : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"StockGroupId","hash":{},"data":data}) : helper)))
+    + "\" class=\"panel-heading\">"
+    + alias4(((helper = (helper = helpers.StockGroup || (depth0 != null ? depth0.StockGroup : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"StockGroup","hash":{},"data":data}) : helper)))
+    + "</div>\r\n<ul data-groupid=\""
+    + alias4(((helper = (helper = helpers.StockGroupId || (depth0 != null ? depth0.StockGroupId : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"StockGroupId","hash":{},"data":data}) : helper)))
+    + "\" class=\"list-group\"></ul>";
+},"useData":true});
 this["Templates"]["stockItem"] = Handlebars.template({"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
     var stack1, alias1=container.lambda, alias2=container.escapeExpression;
 
