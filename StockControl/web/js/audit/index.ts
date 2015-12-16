@@ -11,7 +11,7 @@
 
   Notifications.NotificationEvent.Subscribe(function (data: IAuditEntry)
   {
-    var $log = $(Handlebars.templates["auditLog"](data));
+    var $log = $(Templates["auditLog"](data));
 
     if (!$(".timeline li").first().hasClass("timeline-inverted"))
       $log.addClass("timeline-inverted");

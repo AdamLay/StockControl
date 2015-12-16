@@ -28,6 +28,7 @@
     <Content Include="views\stock\edit-list.jade" />
     <Content Include="views\stock\edit.jade" />
     <Content Include="web\js\templates\auditLog.hbs" />
+    <Content Include="web\js\templates\notification.hbs" />
     <Content Include="web\js\templates\stockItem.hbs" />
     <Content Include="web\styles\timeline.css" />
     <TypeScriptCompile Include="app.ts" />
@@ -91,7 +92,7 @@
     <TypeScriptOutDir />
     <TypeScriptGeneratesDeclarations>False</TypeScriptGeneratesDeclarations>
     <TypeScriptNoEmitOnError>True</TypeScriptNoEmitOnError>
-    <TypeScriptSourceMap>True</TypeScriptSourceMap>
+    <TypeScriptSourceMap>False</TypeScriptSourceMap>
     <TypeScriptMapRoot />
     <TypeScriptSourceRoot />
   </PropertyGroup>

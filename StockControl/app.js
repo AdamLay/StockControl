@@ -5,7 +5,7 @@ var bodyParser = require("body-parser");
 var http = require('http');
 var app = express();
 //#region helpers
-var helpers = require("web/Helpers");
+var helpers = require("./web/js/Helpers.js");
 var groupBy = function (arr, prop, nameProp) {
     var groups = {};
     for (var i = 0; i < arr.length; i++) {
@@ -348,7 +348,12 @@ var Audit = (function () {
     Audit.AddLog = function (title, entry) {
         var audit = { Title: title, Message: entry, Timestamp: new Date().toString() };
         Data.Insert("Audit", [audit]);
-        io.emit("notification", audit);
+        Data.Custom(function (db) {
+            db.get("SELECT last_insert_rowid() as Id", function (err, row) {
+                audit.Id = row.Id;
+                io.emit("notification", audit);
+            });
+        });
     };
     Audit.GetLogEntries = function (type, callback) {
         Data.GetTop("Audit", type ? { Title: type } : null, 100, function (results) {
@@ -373,4 +378,3 @@ var Audit = (function () {
     };
     return Audit;
 })();
-//# sourceMappingURL=app.js.map

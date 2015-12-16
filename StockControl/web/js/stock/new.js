@@ -50,4 +50,3 @@ $("#numReorder").on("blur", function () {
     else
         Validation.Success($this);
 });
-//# sourceMappingURL=new.js.map

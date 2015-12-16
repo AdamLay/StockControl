@@ -51,7 +51,12 @@ function getQueryStringValue(key) {
     var results = regex.exec(window.location.href);
     return results ? decodeURIComponent(results[1].replace(/\+/g, " ")) : null;
 }
-Handlebars.registerHelper();
+Handlebars.registerHelper('valueOf', function (object, options) {
+    return object.call(options.data.root);
+});
+// ...
+if (!window.module)
+    window.module = {};
 //#endregion
 $(document).ready(function () {
     SocketManager.Init();
@@ -222,6 +227,24 @@ var Notifications = (function () {
     Notifications.NotificationEvent = new PublishedEvent();
     return Notifications;
 })();
+var Notification = (function () {
+    function Notification(data) {
+        this.Id = data.Id;
+        this.Title = data.Title;
+        this.Message = data.Message;
+        this.Timestamp = data.Timestamp;
+    }
+    Notification.prototype.GetFormattedTimestamp = function () {
+        return Helpers.FormatDate(new Date(this.Timestamp));
+    };
+    Notification.prototype.GetTimestampTicks = function () {
+        return new Date(this.Timestamp).getTime() + "";
+    };
+    Notification.prototype.GetIcon = function () {
+        return Helpers.GetIcon(this.Title);
+    };
+    return Notification;
+})();
 var Inventory = (function () {
     function Inventory() {
     }
@@ -252,4 +275,3 @@ var StockGroups = (function () {
     StockGroups.StockGroupUpdateEvent = new PublishedEvent();
     return StockGroups;
 })();
-//# sourceMappingURL=main.js.map

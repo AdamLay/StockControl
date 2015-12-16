@@ -1,53 +1,3 @@
-var Helpers = (function () {
-    function Helpers() {
-    }
-    Helpers.GetIcon = function (name) {
-        var icon = "";
-        if (name.indexOf("Add") > -1)
-            icon = "plus";
-        else if (name.indexOf("Update") > -1)
-            icon = "pencil";
-        else if (name.indexOf("Issue") > -1)
-            icon = "gbp";
-        else if (name.indexOf("Delete") > -1)
-            icon = "trash-o";
-        return "fa fa-" + icon;
-    };
-    Helpers.GetColour = function (name) {
-        var col = "";
-        if (name.indexOf("Add") > -1)
-            col = "success";
-        else if (name.indexOf("Update") > -1)
-            col = "default";
-        else if (name.indexOf("Issue") > -1)
-            col = "info";
-        else if (name.indexOf("Delete") > -1)
-            col = "danger";
-        return col;
-    };
-    Helpers.FormatDate = function (d) {
-        var now = new Date();
-        var str = "";
-        if (now.toLocaleDateString() == d.toLocaleDateString()) {
-            var diffSecs = (now - d) / 1000;
-            if (diffSecs < 60)
-                return Math.floor(diffSecs) + " second" + (Math.floor(diffSecs) == 1 ? "" : "s") + " ago";
-            var diffMins = diffSecs / 60;
-            if (diffMins < 60)
-                return Math.floor(diffMins) + " minute" + (Math.floor(diffMins) == 1 ? "" : "s") + " ago";
-            var diffHours = diffMins / 60;
-            return Math.floor(diffHours) + " hour" + (Math.floor(diffHours) == 1 ? "" : "s") + " ago";
-        }
-        else {
-            str += d.getHours() + ":" + d.getMinutes() + " ";
-            str += d.getDate() + "/" + (d.getMonth() + 1);
-        }
-        return str;
-    };
-    return Helpers;
-})();
-module.exports = Helpers;
-//# sourceMappingURL=Helpers.js.map
 //#region Prototypes
 Array.prototype.where = function (predicate) {
     var results = [];
@@ -101,7 +51,12 @@ function getQueryStringValue(key) {
     var results = regex.exec(window.location.href);
     return results ? decodeURIComponent(results[1].replace(/\+/g, " ")) : null;
 }
-Handlebars.registerHelper();
+Handlebars.registerHelper('valueOf', function (object, options) {
+    return object.call(options.data.root);
+});
+// ...
+if (!window.module)
+    window.module = {};
 //#endregion
 $(document).ready(function () {
     SocketManager.Init();
@@ -272,6 +227,24 @@ var Notifications = (function () {
     Notifications.NotificationEvent = new PublishedEvent();
     return Notifications;
 })();
+var Notification = (function () {
+    function Notification(data) {
+        this.Id = data.Id;
+        this.Title = data.Title;
+        this.Message = data.Message;
+        this.Timestamp = data.Timestamp;
+    }
+    Notification.prototype.GetFormattedTimestamp = function () {
+        return Helpers.FormatDate(new Date(this.Timestamp));
+    };
+    Notification.prototype.GetTimestampTicks = function () {
+        return new Date(this.Timestamp).getTime() + "";
+    };
+    Notification.prototype.GetIcon = function () {
+        return Helpers.GetIcon(this.Title);
+    };
+    return Notification;
+})();
 var Inventory = (function () {
     function Inventory() {
     }
@@ -302,22 +275,88 @@ var StockGroups = (function () {
     StockGroups.StockGroupUpdateEvent = new PublishedEvent();
     return StockGroups;
 })();
-//# sourceMappingURL=main.js.map
-Handlebars.template({"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {
-    var helper, alias1=helpers.helperMissing, alias2="function", alias3=this.escapeExpression;
+
+var Helpers = (function () {
+    function Helpers() {
+    }
+    Helpers.GetIcon = function (name) {
+        var icon = "";
+        if (name.indexOf("Add") > -1)
+            icon = "plus";
+        else if (name.indexOf("Update") > -1)
+            icon = "pencil";
+        else if (name.indexOf("Issue") > -1)
+            icon = "gbp";
+        else if (name.indexOf("Delete") > -1)
+            icon = "trash-o";
+        return "fa fa-" + icon;
+    };
+    Helpers.GetColour = function (name) {
+        var col = "";
+        if (name.indexOf("Add") > -1)
+            col = "success";
+        else if (name.indexOf("Update") > -1)
+            col = "default";
+        else if (name.indexOf("Issue") > -1)
+            col = "info";
+        else if (name.indexOf("Delete") > -1)
+            col = "danger";
+        return col;
+    };
+    Helpers.FormatDate = function (d) {
+        var now = new Date();
+        var str = "";
+        if (now.toLocaleDateString() == d.toLocaleDateString()) {
+            var diffSecs = (now - d) / 1000;
+            if (diffSecs < 60)
+                return Math.floor(diffSecs) + " second" + (Math.floor(diffSecs) == 1 ? "" : "s") + " ago";
+            var diffMins = diffSecs / 60;
+            if (diffMins < 60)
+                return Math.floor(diffMins) + " minute" + (Math.floor(diffMins) == 1 ? "" : "s") + " ago";
+            var diffHours = diffMins / 60;
+            return Math.floor(diffHours) + " hour" + (Math.floor(diffHours) == 1 ? "" : "s") + " ago";
+        }
+        else {
+            str += d.getHours() + ":" + d.getMinutes() + " ";
+            str += d.getDate() + "/" + (d.getMonth() + 1);
+        }
+        return str;
+    };
+    return Helpers;
+})();
+module.exports = Helpers;
+
+this["Templates"] = this["Templates"] || {};
+this["Templates"]["auditLog"] = Handlebars.template({"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
+    var helper, alias1=depth0 != null ? depth0 : {}, alias2=helpers.helperMissing, alias3="function", alias4=container.escapeExpression;
 
   return "<li>\r\n    <div class=\"timeline-badge\">\r\n        <i class=\"fa\"></i>\r\n    </div>\r\n    <div id=\""
-    + alias3(((helper = (helper = helpers.Id || (depth0 != null ? depth0.Id : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"Id","hash":{},"data":data}) : helper)))
+    + alias4(((helper = (helper = helpers.Id || (depth0 != null ? depth0.Id : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"Id","hash":{},"data":data}) : helper)))
     + "\" class=\"timeline-panel\">\r\n        <div class=\"timeline-heading\">\r\n            <h4 class=\"timeline-title\">"
-    + alias3(((helper = (helper = helpers.Title || (depth0 != null ? depth0.Title : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"Title","hash":{},"data":data}) : helper)))
+    + alias4(((helper = (helper = helpers.Title || (depth0 != null ? depth0.Title : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"Title","hash":{},"data":data}) : helper)))
     + "</h4>\r\n            <p>\r\n                <small class=\"text-muted\">"
-    + alias3(((helper = (helper = helpers.Timestamp || (depth0 != null ? depth0.Timestamp : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"Timestamp","hash":{},"data":data}) : helper)))
+    + alias4(((helper = (helper = helpers.Timestamp || (depth0 != null ? depth0.Timestamp : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"Timestamp","hash":{},"data":data}) : helper)))
     + "</small>\r\n            </p>\r\n        </div>\r\n        <div class=\"timeline-body\">\r\n            <p>"
-    + alias3(((helper = (helper = helpers.Message || (depth0 != null ? depth0.Message : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"Message","hash":{},"data":data}) : helper)))
+    + alias4(((helper = (helper = helpers.Message || (depth0 != null ? depth0.Message : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"Message","hash":{},"data":data}) : helper)))
     + "</p>\r\n        </div>\r\n    </div>\r\n</li>";
-},"useData":true})
-Handlebars.template({"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {
-    var stack1, alias1=this.lambda, alias2=this.escapeExpression;
+},"useData":true});
+this["Templates"]["notification"] = Handlebars.template({"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
+    var helper, alias1=depth0 != null ? depth0 : {}, alias2=helpers.helperMissing, alias3="function", alias4=container.escapeExpression;
+
+  return "<a href=\"/audit?id="
+    + alias4(((helper = (helper = helpers.Id || (depth0 != null ? depth0.Id : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"Id","hash":{},"data":data}) : helper)))
+    + "\" class=\"list-group-item new\" style=\"display:block;\">\r\n    <i class=\"fa "
+    + alias4(helpers["valueOf"].call(alias1,(depth0 != null ? depth0.GetIcon : depth0),{"name":"valueOf","hash":{},"data":data}))
+    + "\"></i> "
+    + alias4(((helper = (helper = helpers.Title || (depth0 != null ? depth0.Title : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"Title","hash":{},"data":data}) : helper)))
+    + "\r\n    <span data-time=\""
+    + alias4(helpers["valueOf"].call(alias1,(depth0 != null ? depth0.GetTimestampTicks : depth0),{"name":"valueOf","hash":{},"data":data}))
+    + "\" class=\"pull-right text-muted small\">"
+    + alias4(helpers["valueOf"].call(alias1,(depth0 != null ? depth0.GetFormattedTimestamp : depth0),{"name":"valueOf","hash":{},"data":data}))
+    + "</span>\r\n</a>";
+},"useData":true});
+this["Templates"]["stockItem"] = Handlebars.template({"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
+    var stack1, alias1=container.lambda, alias2=container.escapeExpression;
 
   return "<li class=\"list-group-item stock-item\" data-stockid=\""
     + alias2(alias1(((stack1 = (depth0 != null ? depth0.item : depth0)) != null ? stack1.Id : stack1), depth0))
@@ -328,4 +367,4 @@ Handlebars.template({"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,hel
     + "</h3>\r\n    <div class=\"quantity\">In Stock: "
     + alias2(alias1(((stack1 = (depth0 != null ? depth0.item : depth0)) != null ? stack1.Quantity : stack1), depth0))
     + "</div>\r\n</li>";
-},"useData":true})
+},"useData":true});

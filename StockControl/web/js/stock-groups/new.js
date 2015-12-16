@@ -15,4 +15,3 @@ $("#txtName").on("keyup", function () {
         });
     }, true);
 });
-//# sourceMappingURL=new.js.map

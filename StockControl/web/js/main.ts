@@ -92,7 +92,16 @@ function getQueryStringValue(key: string)
 
 declare var Handlebars: any;
 
-Handlebars.registerHelper();
+Handlebars.registerHelper('valueOf', function (object, options)
+{
+  return object.call(options.data.root);
+});
+
+declare var Templates: any;
+
+// ...
+if (!(<any>window).module)
+  (<any>window).module = {};
 
 //#endregion
 
@@ -353,6 +362,37 @@ class Notifications
   public static OnNotification(data: IAuditEntry): void
   {
     Notifications.NotificationEvent.Trigger(data);
+  }
+}
+
+class Notification implements IAuditEntry
+{
+  public Id: number;
+  public Title: string;
+  public Message: string;
+  public Timestamp: string;
+
+  constructor(data: IAuditEntry)
+  {
+    this.Id = data.Id;
+    this.Title = data.Title;
+    this.Message = data.Message;
+    this.Timestamp = data.Timestamp;
+  }
+
+  public GetFormattedTimestamp(): string
+  {
+    return Helpers.FormatDate(new Date(this.Timestamp));
+  }
+
+  public GetTimestampTicks(): string
+  {
+    return new Date(this.Timestamp).getTime() + "";
+  }
+
+  public GetIcon(): string
+  {
+    return Helpers.GetIcon(this.Title);
   }
 }
 

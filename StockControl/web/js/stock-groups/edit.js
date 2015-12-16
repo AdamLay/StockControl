@@ -13,4 +13,3 @@ function sgDelete(id) {
         }
     });
 }
-//# sourceMappingURL=edit.js.map

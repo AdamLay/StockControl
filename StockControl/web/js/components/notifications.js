@@ -1,27 +1,9 @@
 $(document).ready(function () {
     Notifications.NotificationEvent.Subscribe(function (data) {
-        var time = new Date(data.Timestamp);
-        var $item = $("<a>", {
-            "class": "list-group-item new",
-            "text": " " + data.Title,
-            "style": "display:block",
-            "href": "/audit?id=" + data.Id
-        });
-        var $icon = $("<i>", {
-            "class": Helpers.GetIcon(data.Title)
-        });
-        var $stamp = $("<span>", {
-            "class": "pull-right text-muted small",
-            "text": Helpers.FormatDate(time),
-            "data-time": time.getTime()
-        });
-        $item.prepend($icon);
-        $item.append($stamp);
-        $item.hide();
-        $("#lstNotifications").prepend($item);
+        var $entry = $(Templates["notification"](new Notification(data))).hide();
+        $("#lstNotifications").prepend($entry);
         $("#lstNotifications a").last().slideUp(200, function () { $(this).remove(); });
-        $item.slideDown(200);
-        $item.on("mouseover", function () { $(this).removeClass("new"); });
+        $entry.slideDown(200);
+        $entry.on("mouseover", function () { $(this).removeClass("new"); });
     });
 });
-//# sourceMappingURL=notifications.js.map

@@ -8,7 +8,7 @@ var app = express();
 
 //#region helpers
 
-var helpers = require("web/Helpers");
+var helpers = require("./web/js/Helpers.js");
 
 var groupBy = function (arr, prop, nameProp)
 {
@@ -566,7 +566,15 @@ class Audit
 
     Data.Insert("Audit", [audit]);
 
-    io.emit("notification", audit);
+    Data.Custom(function (db)
+    {
+      db.get("SELECT last_insert_rowid() as Id", function (err, row)
+      {
+        audit.Id = row.Id;
+
+        io.emit("notification", audit);
+      });
+    });
   }
 
   public static GetLogEntries(type: string, callback: Function)

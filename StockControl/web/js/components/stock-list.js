@@ -32,4 +32,3 @@ $(document).ready(function () {
         $group.text(group.Name);
     });
 });
-//# sourceMappingURL=stock-list.js.map
