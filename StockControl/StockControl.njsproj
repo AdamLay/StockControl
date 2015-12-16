@@ -4,7 +4,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{51dfb5a7-0f28-457d-96a2-0e65a2ca3ea0}</ProjectGuid>
-    <ProjectView>ShowAllFiles</ProjectView>
+    <ProjectView>ProjectFiles</ProjectView>
     <StartupFile>app.ts</StartupFile>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -18,6 +18,7 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
   <ItemGroup>
+    <Compile Include="gulpfile.js" />
     <Compile Include="views\partials\notifications.jade" />
     <Content Include="compilerconfig.json" />
     <Content Include="package.json" />
@@ -26,6 +27,7 @@
     <Content Include="views\partials\reorders.jade" />
     <Content Include="views\stock\edit-list.jade" />
     <Content Include="views\stock\edit.jade" />
+    <Content Include="web\js\templates\auditLog.handlebars" />
     <Content Include="web\js\templates\stockItem.handlebars" />
     <Content Include="web\styles\timeline.css" />
     <TypeScriptCompile Include="app.ts" />
@@ -46,6 +48,7 @@
     <TypeScriptCompile Include="StockControl.d.ts" />
     <TypeScriptCompile Include="web\js\audit\index.ts" />
     <TypeScriptCompile Include="web\js\components\notifications.ts" />
+    <TypeScriptCompile Include="web\js\Helpers.ts" />
     <TypeScriptCompile Include="web\js\main.ts" />
     <Compile Include="web\js\main.js" />
     <Content Include="web\styles\main.less" />

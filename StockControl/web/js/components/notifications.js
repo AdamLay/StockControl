@@ -8,11 +8,11 @@ $(document).ready(function () {
             "href": "/audit?id=" + data.Id
         });
         var $icon = $("<i>", {
-            "class": getIcon(data.Title)
+            "class": Helpers.GetIcon(data.Title)
         });
         var $stamp = $("<span>", {
             "class": "pull-right text-muted small",
-            "text": formatDate(time),
+            "text": Helpers.FormatDate(time),
             "data-time": time.getTime()
         });
         $item.prepend($icon);

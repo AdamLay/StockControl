@@ -61,38 +61,6 @@ Array.prototype.groupBy = function (prop)
 
 //#region Helpers
 
-var formatDate = function (d: any)
-{
-  var now = new Date();
-
-  var str = "";
-
-  if (now.toLocaleDateString() == d.toLocaleDateString())
-  {
-    var diffSecs = (<any>now - d) / 1000;
-
-    if (diffSecs < 60)
-      return Math.floor(diffSecs) + " second" + (Math.floor(diffSecs) == 1 ? "" : "s") + " ago";
-
-    var diffMins = diffSecs / 60;
-
-    if (diffMins < 60)
-      return Math.floor(diffMins) + " minute" + (Math.floor(diffMins) == 1 ? "" : "s") + " ago";
-
-    var diffHours = diffMins / 60;
-
-    return Math.floor(diffHours) + " hour" + (Math.floor(diffHours) == 1 ? "" : "s") + " ago";
-
-  }
-  else
-  {
-    str += d.getHours() + ":" + d.getMinutes() + " ";
-    str += d.getDate() + "/" + (d.getMonth() + 1);
-  }
-
-  return str;
-};
-
 function alertTop(msg: string, success: boolean)
 {
   var $pop = $("<div>", {
@@ -121,25 +89,6 @@ function getQueryStringValue(key: string)
 
   return results ? decodeURIComponent(results[1].replace(/\+/g, " ")) : null;
 }
-
-var getIcon = function (name)
-{
-  var icon = "";
-
-  if (name.indexOf("Add") > -1)
-    icon = "plus";
-
-  else if (name.indexOf("Update") > -1)
-    icon = "pencil";
-
-  else if (name.indexOf("Issue") > -1)
-    icon = "gbp";
-
-  else if (name.indexOf("Delete") > -1)
-    icon = "ban";
-
-  return "fa fa-" + icon;
-};
 
 declare var Handlebars: any;
 
@@ -393,7 +342,7 @@ class Notifications
 
           var dt = new Date(parseFloat($this.attr("data-time")));
 
-          $this.text(formatDate(dt));
+          $this.text(Helpers.FormatDate(dt));
         });
       }, 5000);
     }
