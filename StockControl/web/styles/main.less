@@ -50,6 +50,24 @@ main {
 
 .stock-group-heading {
     cursor: pointer;
+
+    i {
+        line-height: 20px;
+
+        &.fa-chevron-down {
+            display: none;
+        }
+    }
+
+    &.closed {
+        i.fa-chevron-up {
+            display: none;
+        }
+
+        i.fa-chevron-down {
+            display: inline-block;
+        }
+    }
 }
 
 .stock-item h3.name {

@@ -1,4 +1,7 @@
-.panel-heading.stock-group-heading(data-groupid="#{key}", onclick="toggleGroup(this)") #{group.Name}
+.panel-heading.stock-group-heading(data-groupid="#{key}", onclick="toggleGroup(this)")
+    span #{group.Name}
+    i.fa.fa-chevron-up.pull-right.text-muted
+    i.fa.fa-chevron-down.pull-right.text-muted
 ul.list-group.stock-group(data-groupid="#{key}")
     each item in group.Items
         include ./stockItem

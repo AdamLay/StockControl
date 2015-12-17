@@ -343,7 +343,7 @@ var buf = [];
 var jade_mixins = {};
 var jade_interp;
 ;var locals_for_with = (locals || {});(function (group, key, undefined) {
-buf.push("<div" + (jade.attr("data-groupid", "" + (key) + "", true, false)) + " onclick=\"toggleGroup(this)\" class=\"panel-heading stock-group-heading\">" + (jade.escape((jade_interp = group.Name) == null ? '' : jade_interp)) + "</div><ul" + (jade.attr("data-groupid", "" + (key) + "", true, false)) + " class=\"list-group stock-group\">");
+buf.push("<div" + (jade.attr("data-groupid", "" + (key) + "", true, false)) + " onclick=\"toggleGroup(this)\" class=\"panel-heading stock-group-heading\"><span>" + (jade.escape((jade_interp = group.Name) == null ? '' : jade_interp)) + "</span><i class=\"fa fa-chevron-up pull-right text-muted\"></i><i class=\"fa fa-chevron-down pull-right text-muted\"></i></div><ul" + (jade.attr("data-groupid", "" + (key) + "", true, false)) + " class=\"list-group stock-group\">");
 // iterate group.Items
 ;(function(){
   var $$obj = group.Items;

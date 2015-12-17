@@ -30,6 +30,18 @@ main {
 .stock-group-heading {
   cursor: pointer;
 }
+.stock-group-heading i {
+  line-height: 20px;
+}
+.stock-group-heading i.fa-chevron-down {
+  display: none;
+}
+.stock-group-heading.closed i.fa-chevron-up {
+  display: none;
+}
+.stock-group-heading.closed i.fa-chevron-down {
+  display: inline-block;
+}
 .stock-item h3.name {
   margin-top: 0;
 }
