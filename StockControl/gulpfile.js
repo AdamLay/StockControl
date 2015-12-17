@@ -1,4 +1,4 @@
-/// <binding AfterBuild='compile-jade, default' />
+/// <binding AfterBuild='default' />
 var gulp = require('gulp'),
     concat = require('gulp-concat'),
     declare = require('gulp-declare'),

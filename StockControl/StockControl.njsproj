@@ -31,6 +31,8 @@
     <Content Include="views\partials\reorders.jade" />
     <Content Include="views\stock\edit-list.jade" />
     <Content Include="views\stock\edit.jade" />
+    <Content Include="web\styles\main.css" />
+    <Content Include="web\styles\main.min.css" />
     <Content Include="web\styles\timeline.css" />
     <TypeScriptCompile Include="app.ts" />
     <TypeScriptCompile Include="d.ts\express.d.ts" />

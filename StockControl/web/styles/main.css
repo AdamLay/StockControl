@@ -11,6 +11,9 @@
   clear: both;
   height: 0;
 }
+html {
+  overflow-y: scroll;
+}
 html,
 body {
   font-family: 'Open Sans', Arial, sans-serif;
@@ -23,6 +26,9 @@ main {
 }
 #lstNotifications a.new {
   background-color: rgba(217, 237, 247, 0.5);
+}
+.stock-group-heading {
+  cursor: pointer;
 }
 .stock-item h3.name {
   margin-top: 0;

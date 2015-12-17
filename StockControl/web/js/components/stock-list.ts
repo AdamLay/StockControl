@@ -12,22 +12,11 @@
 
   Inventory.StockAddEvent.Subscribe(function (data: IStockItem)
   {
-    // TODO: Test this
-
-    
-
-    //if (data.Quantity < 1)
-    //  $item.attr("disabled", "disabled");
-
     var $list = $('.list-group[data-groupid="' + data.StockGroupId + '"]')
 
     if ($list.length == 0)
     {
       var $group = $(Templates["stockGroup"]({ group: { Id: data.StockGroupId, Name: data.StockGroup, Items: [data] } }));
-
-      //$group
-      //  .children(".list-group")
-      //  .append($item);
 
       $("#stock").append($group);
     }
@@ -44,3 +33,12 @@
     $(".panel-heading[data-groupid=\"" + group.Id + "\"]").text(group.Name);
   });
 });
+
+var toggleGroup = function (elem)
+{
+  var $elem = $(elem);
+
+  $elem.toggleClass("closed");
+
+  $elem.next().slideToggle(200);
+};
