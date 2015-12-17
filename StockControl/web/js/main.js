@@ -51,9 +51,6 @@ function getQueryStringValue(key) {
     var results = regex.exec(window.location.href);
     return results ? decodeURIComponent(results[1].replace(/\+/g, " ")) : null;
 }
-Handlebars.registerHelper('valueOf', function (object, options) {
-    return object.call(options.data.root);
-});
 // ...
 if (!window.module)
     window.module = {};

@@ -51,9 +51,6 @@ function getQueryStringValue(key) {
     var results = regex.exec(window.location.href);
     return results ? decodeURIComponent(results[1].replace(/\+/g, " ")) : null;
 }
-Handlebars.registerHelper('valueOf', function (object, options) {
-    return object.call(options.data.root);
-});
 // ...
 if (!window.module)
     window.module = {};
@@ -327,55 +324,54 @@ var Helpers = (function () {
 module.exports = Helpers;
 
 this["Templates"] = this["Templates"] || {};
-this["Templates"]["auditLog"] = Handlebars.template({"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
-    var helper, alias1=depth0 != null ? depth0 : {}, alias2=helpers.helperMissing, alias3="function", alias4=container.escapeExpression;
+this["Templates"]["auditEntry"] = function template(locals) {
+var buf = [];
+var jade_mixins = {};
+var jade_interp;
+;var locals_for_with = (locals || {});(function (Date, Helpers, index, log) {
+buf.push("<li" + (jade.cls(["" + (index % 2 == 1 ? 'timeline-inverted' : '') + ""], [true])) + "><div" + (jade.cls(['timeline-badge',"" + (Helpers.GetColour(log.Title)) + ""], [null,true])) + "><i" + (jade.cls(['fa',"" + (Helpers.GetIcon(log.Title)) + ""], [null,true])) + "></i></div><div" + (jade.attr("id", "" + (log.Id) + "", true, false)) + " class=\"timeline-panel\"><div class=\"timeline-heading\"><h4 class=\"timeline-title\">" + (jade.escape((jade_interp = log.Title) == null ? '' : jade_interp)) + "</h4><p><small class=\"text-muted\">" + (jade.escape((jade_interp = new Date(log.Timestamp).toUTCString()) == null ? '' : jade_interp)) + "</small></p></div><div class=\"timeline-body\"><p>" + (jade.escape((jade_interp = log.Message) == null ? '' : jade_interp)) + "</p></div></div></li>");}.call(this,"Date" in locals_for_with?locals_for_with.Date:typeof Date!=="undefined"?Date:undefined,"Helpers" in locals_for_with?locals_for_with.Helpers:typeof Helpers!=="undefined"?Helpers:undefined,"index" in locals_for_with?locals_for_with.index:typeof index!=="undefined"?index:undefined,"log" in locals_for_with?locals_for_with.log:typeof log!=="undefined"?log:undefined));;return buf.join("");
+};
+this["Templates"]["notification"] = function template(locals) {
+var buf = [];
+var jade_mixins = {};
+var jade_interp;
+;var locals_for_with = (locals || {});(function (Date, Helpers, item) {
+buf.push("<a" + (jade.attr("href", "/audit?id=" + (item.Id) + "", true, false)) + " style=\"display:block;\" class=\"list-group-item\"><i" + (jade.cls(["" + (Helpers.GetIcon(item.Title)) + ""], [true])) + "></i> " + (jade.escape((jade_interp = item.Title) == null ? '' : jade_interp)) + "<span" + (jade.attr("data-time", "" + (new Date(item.Timestamp).getTime()) + "", true, false)) + " class=\"pull-right text-muted small\">" + (jade.escape((jade_interp = Helpers.FormatDate(new Date(item.Timestamp))) == null ? '' : jade_interp)) + "</span></a>");}.call(this,"Date" in locals_for_with?locals_for_with.Date:typeof Date!=="undefined"?Date:undefined,"Helpers" in locals_for_with?locals_for_with.Helpers:typeof Helpers!=="undefined"?Helpers:undefined,"item" in locals_for_with?locals_for_with.item:typeof item!=="undefined"?item:undefined));;return buf.join("");
+};
+this["Templates"]["stockGroup"] = function template(locals) {
+var buf = [];
+var jade_mixins = {};
+var jade_interp;
+;var locals_for_with = (locals || {});(function (group, key, undefined) {
+buf.push("<div" + (jade.attr("data-groupid", "" + (key) + "", true, false)) + " class=\"panel-heading\">" + (jade.escape((jade_interp = group.Name) == null ? '' : jade_interp)) + "</div><ul" + (jade.attr("data-groupid", "" + (key) + "", true, false)) + " class=\"list-group\">");
+// iterate group.Items
+;(function(){
+  var $$obj = group.Items;
+  if ('number' == typeof $$obj.length) {
 
-  return "<li>\r\n    <div class=\"timeline-badge\">\r\n        <i class=\"fa\"></i>\r\n    </div>\r\n    <div id=\""
-    + alias4(((helper = (helper = helpers.Id || (depth0 != null ? depth0.Id : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"Id","hash":{},"data":data}) : helper)))
-    + "\" class=\"timeline-panel\">\r\n        <div class=\"timeline-heading\">\r\n            <h4 class=\"timeline-title\">"
-    + alias4(((helper = (helper = helpers.Title || (depth0 != null ? depth0.Title : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"Title","hash":{},"data":data}) : helper)))
-    + "</h4>\r\n            <p>\r\n                <small class=\"text-muted\">"
-    + alias4(((helper = (helper = helpers.Timestamp || (depth0 != null ? depth0.Timestamp : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"Timestamp","hash":{},"data":data}) : helper)))
-    + "</small>\r\n            </p>\r\n        </div>\r\n        <div class=\"timeline-body\">\r\n            <p>"
-    + alias4(((helper = (helper = helpers.Message || (depth0 != null ? depth0.Message : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"Message","hash":{},"data":data}) : helper)))
-    + "</p>\r\n        </div>\r\n    </div>\r\n</li>";
-},"useData":true});
-this["Templates"]["notification"] = Handlebars.template({"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
-    var helper, alias1=depth0 != null ? depth0 : {}, alias2=helpers.helperMissing, alias3="function", alias4=container.escapeExpression;
+    for (var $index = 0, $$l = $$obj.length; $index < $$l; $index++) {
+      var item = $$obj[$index];
 
-  return "<a href=\"/audit?id="
-    + alias4(((helper = (helper = helpers.Id || (depth0 != null ? depth0.Id : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"Id","hash":{},"data":data}) : helper)))
-    + "\" class=\"list-group-item new\" style=\"display:block;\">\r\n    <i class=\"fa "
-    + alias4(helpers["valueOf"].call(alias1,(depth0 != null ? depth0.GetIcon : depth0),{"name":"valueOf","hash":{},"data":data}))
-    + "\"></i> "
-    + alias4(((helper = (helper = helpers.Title || (depth0 != null ? depth0.Title : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"Title","hash":{},"data":data}) : helper)))
-    + "\r\n    <span data-time=\""
-    + alias4(helpers["valueOf"].call(alias1,(depth0 != null ? depth0.GetTimestampTicks : depth0),{"name":"valueOf","hash":{},"data":data}))
-    + "\" class=\"pull-right text-muted small\">"
-    + alias4(helpers["valueOf"].call(alias1,(depth0 != null ? depth0.GetFormattedTimestamp : depth0),{"name":"valueOf","hash":{},"data":data}))
-    + "</span>\r\n</a>";
-},"useData":true});
-this["Templates"]["stockGroup"] = Handlebars.template({"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
-    var helper, alias1=depth0 != null ? depth0 : {}, alias2=helpers.helperMissing, alias3="function", alias4=container.escapeExpression;
+buf.push("<li" + (jade.attr("data-stockid", "" + (item.Id) + "", true, false)) + " class=\"list-group-item stock-item\"><button" + (jade.attr("onclick", "Inventory.IssueStock(" + (item.Id) + ")", true, false)) + " title=\"Release 1 item from inventory\"" + (jade.attr("disabled", (item.Quantity == 0 ? 'disabled' : null), true, false)) + " class=\"btn btn-primary pull-right\"><i class=\"fa fa-gbp\"></i> Issue</button><h3 class=\"name\">" + (jade.escape((jade_interp = item.Name) == null ? '' : jade_interp)) + "</h3><div class=\"quantity\">In Stock: " + (jade.escape((jade_interp = item.Quantity) == null ? '' : jade_interp)) + "</div></li>");
+    }
 
-  return "<div data-groupid=\""
-    + alias4(((helper = (helper = helpers.StockGroupId || (depth0 != null ? depth0.StockGroupId : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"StockGroupId","hash":{},"data":data}) : helper)))
-    + "\" class=\"panel-heading\">"
-    + alias4(((helper = (helper = helpers.StockGroup || (depth0 != null ? depth0.StockGroup : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"StockGroup","hash":{},"data":data}) : helper)))
-    + "</div>\r\n<ul data-groupid=\""
-    + alias4(((helper = (helper = helpers.StockGroupId || (depth0 != null ? depth0.StockGroupId : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"StockGroupId","hash":{},"data":data}) : helper)))
-    + "\" class=\"list-group\"></ul>";
-},"useData":true});
-this["Templates"]["stockItem"] = Handlebars.template({"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
-    var stack1, alias1=container.lambda, alias2=container.escapeExpression;
+  } else {
+    var $$l = 0;
+    for (var $index in $$obj) {
+      $$l++;      var item = $$obj[$index];
 
-  return "<li class=\"list-group-item stock-item\" data-stockid=\""
-    + alias2(alias1(((stack1 = (depth0 != null ? depth0.item : depth0)) != null ? stack1.Id : stack1), depth0))
-    + "\">\r\n    <button class=\"btn btn-primary pull-right\" onclick=\"Inventory.IssueStock("
-    + alias2(alias1(((stack1 = (depth0 != null ? depth0.item : depth0)) != null ? stack1.Id : stack1), depth0))
-    + ")\" title=\"Release 1 item from inventory\">\r\n        <i class=\"fa fa-gbp\"></i> Issue\r\n    </button>\r\n    <h3 class=\"name\">"
-    + alias2(alias1(((stack1 = (depth0 != null ? depth0.item : depth0)) != null ? stack1.Name : stack1), depth0))
-    + "</h3>\r\n    <div class=\"quantity\">In Stock: "
-    + alias2(alias1(((stack1 = (depth0 != null ? depth0.item : depth0)) != null ? stack1.Quantity : stack1), depth0))
-    + "</div>\r\n</li>";
-},"useData":true});
+buf.push("<li" + (jade.attr("data-stockid", "" + (item.Id) + "", true, false)) + " class=\"list-group-item stock-item\"><button" + (jade.attr("onclick", "Inventory.IssueStock(" + (item.Id) + ")", true, false)) + " title=\"Release 1 item from inventory\"" + (jade.attr("disabled", (item.Quantity == 0 ? 'disabled' : null), true, false)) + " class=\"btn btn-primary pull-right\"><i class=\"fa fa-gbp\"></i> Issue</button><h3 class=\"name\">" + (jade.escape((jade_interp = item.Name) == null ? '' : jade_interp)) + "</h3><div class=\"quantity\">In Stock: " + (jade.escape((jade_interp = item.Quantity) == null ? '' : jade_interp)) + "</div></li>");
+    }
+
+  }
+}).call(this);
+
+buf.push("</ul>");}.call(this,"group" in locals_for_with?locals_for_with.group:typeof group!=="undefined"?group:undefined,"key" in locals_for_with?locals_for_with.key:typeof key!=="undefined"?key:undefined,"undefined" in locals_for_with?locals_for_with.undefined:typeof undefined!=="undefined"?undefined:undefined));;return buf.join("");
+};
+this["Templates"]["stockItem"] = function template(locals) {
+var buf = [];
+var jade_mixins = {};
+var jade_interp;
+;var locals_for_with = (locals || {});(function (item) {
+buf.push("<li" + (jade.attr("data-stockid", "" + (item.Id) + "", true, false)) + " class=\"list-group-item stock-item\"><button" + (jade.attr("onclick", "Inventory.IssueStock(" + (item.Id) + ")", true, false)) + " title=\"Release 1 item from inventory\"" + (jade.attr("disabled", (item.Quantity == 0 ? 'disabled' : null), true, false)) + " class=\"btn btn-primary pull-right\"><i class=\"fa fa-gbp\"></i> Issue</button><h3 class=\"name\">" + (jade.escape((jade_interp = item.Name) == null ? '' : jade_interp)) + "</h3><div class=\"quantity\">In Stock: " + (jade.escape((jade_interp = item.Quantity) == null ? '' : jade_interp)) + "</div></li>");}.call(this,"item" in locals_for_with?locals_for_with.item:typeof item!=="undefined"?item:undefined));;return buf.join("");
+};

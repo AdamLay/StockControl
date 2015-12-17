@@ -1,0 +1,4 @@
+.panel-heading(data-groupid="#{key}") #{group.Name}
+ul.list-group(data-groupid="#{key}")
+    each item in group.Items
+        include ./stockItem

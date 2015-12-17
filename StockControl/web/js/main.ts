@@ -90,13 +90,6 @@ function getQueryStringValue(key: string)
   return results ? decodeURIComponent(results[1].replace(/\+/g, " ")) : null;
 }
 
-declare var Handlebars: any;
-
-Handlebars.registerHelper('valueOf', function (object, options)
-{
-  return object.call(options.data.root);
-});
-
 declare var Templates: any;
 
 // ...

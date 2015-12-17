@@ -2,7 +2,7 @@
 {
   Notifications.NotificationEvent.Subscribe(function (data: IAuditEntry)
   {
-    var $entry = $(Templates["notification"](new Notification(data))).hide();
+    var $entry = $(Templates["notification"]({ item: data })).hide().addClass("new");
 
     $("#lstNotifications").prepend($entry);
 

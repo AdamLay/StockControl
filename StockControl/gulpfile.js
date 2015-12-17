@@ -1,24 +1,31 @@
-/// <binding AfterBuild='default' />
+/// <binding AfterBuild='compile-jade, default' />
 var gulp = require('gulp'),
     concat = require('gulp-concat'),
-    wrap = require('gulp-wrap'),
     declare = require('gulp-declare'),
-    handlebars = require('gulp-handlebars');
+    jade = require('gulp-jade');
 
-gulp.task("compile-hbs", function () {
+gulp.task('compile-jade', function () {
   return gulp
-    .src('web/js/templates/*.hbs')
-    .pipe(handlebars({ handlebars: require('handlebars') }))
-    .pipe(wrap('Handlebars.template(<%= contents %>)'))
-    .pipe(declare({ namespace: 'Templates', noRedeclare: true }))
+    .src('./views/client/*.jade')
+    .pipe(jade({
+        jade: require('jade'),
+        client: true
+    }))
+    .pipe(declare({
+        namespace: "Templates",
+        noRedeclare: true,
+        processName: function (path) {
+            return declare.processNameByPath(path.substring(path.lastIndexOf('\\') + 1));
+        }
+    }))
     .pipe(concat('templates.js'))
-    .pipe(gulp.dest('web/js/'));
+    .pipe(gulp.dest('web/js'));
 });
 
-gulp.task("default", ["compile-hbs"], function () {
+gulp.task('default', ['compile-jade'], function () {
 
     return gulp
-        .src(['web/js/main.js', 'web/js/Helpers.js', 'web/js/templates.js'])
-        .pipe(concat('app.js'))
-        .pipe(gulp.dest('web/js/'));
+      .src(['web/js/main.js', 'web/js/Helpers.js', 'web/js/templates.js'])
+      .pipe(concat('app.js'))
+      .pipe(gulp.dest('web/js/'));
 });

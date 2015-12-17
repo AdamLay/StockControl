@@ -1,6 +1,6 @@
 $(document).ready(function () {
     Notifications.NotificationEvent.Subscribe(function (data) {
-        var $entry = $(Templates["notification"](new Notification(data))).hide();
+        var $entry = $(Templates["notification"]({ item: data })).hide().addClass("new");
         $("#lstNotifications").prepend($entry);
         $("#lstNotifications a").last().slideUp(200, function () { $(this).remove(); });
         $entry.slideDown(200);

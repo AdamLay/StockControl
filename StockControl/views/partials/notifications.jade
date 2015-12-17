@@ -4,9 +4,6 @@
         |  Notifications
     #lstNotifications.list-group
         each item in notifications
-            a.list-group-item(href="/audit?id=#{item.Id}")
-                i(class="#{Helpers.GetIcon(item.Title)}")
-                |  #{item.Title}
-                span.pull-right.text-muted.small(data-time="#{new Date(item.Timestamp).getTime()}") #{Helpers.FormatDate(new Date(item.Timestamp))}
+            include ../client/notification
 
 script(src="/js/components/notifications.js")

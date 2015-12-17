@@ -11,17 +11,11 @@
 
   Notifications.NotificationEvent.Subscribe(function (data: IAuditEntry)
   {
-    var $log = $(Templates["auditLog"](data));
+    var $log = $(Templates["auditEntry"]({ log: data }));
 
     if (!$(".timeline li").first().hasClass("timeline-inverted"))
       $log.addClass("timeline-inverted");
-
-    $log
-      .children(".timeline-badge")
-      .addClass(Helpers.GetColour(data.Title))
-      .children("i")
-      .addClass(Helpers.GetIcon(data.Title));
-
+    
     $(".timeline").prepend($log);
   });
 });

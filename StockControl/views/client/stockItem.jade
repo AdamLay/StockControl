@@ -1,0 +1,6 @@
+li.list-group-item.stock-item(data-stockid="#{item.Id}")
+    button.btn.btn-primary.pull-right(onclick="Inventory.IssueStock(#{item.Id})", title="Release 1 item from inventory", disabled=(item.Quantity == 0 ? 'disabled' : null))
+        i.fa.fa-gbp
+        |  Issue
+    h3.name #{item.Name}
+    .quantity In Stock: #{item.Quantity}
