@@ -1,0 +1,29 @@
+﻿extends ../layout
+
+block content
+
+    .page-header
+        h1 Edit Stock Items
+        
+    table.table
+        thead
+            tr
+                th Name
+                th Update
+                th Delete
+        tbody
+            each item in items
+                tr(id="row_#{item.Id}")
+                    td
+                        span #{item.Name}
+                    td
+                        button.btn.btn-default(onclick="sgUpdate(#{group.Id})")
+                            i.fa.fa-pencil
+                            |  Update
+                    td
+                        button.btn.btn-danger(onclick="sgDelete(#{group.Id})")
+                            i.fa.fa-trash-o
+                            |  Delete
+
+block scripts
+    

@@ -304,7 +304,7 @@ class Api
       type: "DELETE",
       success: function (data)
       {
-        console.log(url + " deleted");
+        console.log(url + (data.Success ? "" : " not") + " deleted");
 
         callback(data);
       }

@@ -1560,6 +1560,12 @@ interface JQuery
   clearQueue(queueName?: string): JQuery;
 
   /**
+   * Return the value at the named data store for the first element in the jQuery collection, as set by data(name, value) or by an HTML5 data-* attribute.
+   *
+   * @param key Name of the data stored.
+   */
+  data(key: string): any;
+  /**
    * Store arbitrary data associated with the matched elements.
    *
    * @param key A string naming the piece of data to set.
@@ -1572,12 +1578,6 @@ interface JQuery
    * @param obj An object of key-value pairs of data to update.
    */
   data(obj: { [key: string]: any; }): JQuery;
-  /**
-   * Return the value at the named data store for the first element in the jQuery collection, as set by data(name, value) or by an HTML5 data-* attribute.
-   *
-   * @param key Name of the data stored.
-   */
-  data(key: string): any;
   /**
    * Return the value at the named data store for the first element in the jQuery collection, as set by data(name, value) or by an HTML5 data-* attribute.
    */

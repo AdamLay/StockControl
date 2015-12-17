@@ -21,9 +21,13 @@ block content
                             i.fa.fa-pencil
                             |  Update
                     td
-                        button.btn.btn-danger(onclick="sgDelete(#{group.Id})")
+                        button.btn.btn-danger(data-toggle="modal", data-target="#confirmDelete", data-groupid=group.Id)
                             i.fa.fa-trash-o
                             |  Delete
+
+    - var dialog = { Id: "confirmDelete", Title: "Confirm Delete", Message: "", OnClick: null, ButtonLabel: "Delete" }
+
+    include ../client/modalDialog
 
 block scripts
     script(src="/js/stock-groups/edit.js")

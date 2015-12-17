@@ -1,4 +1,19 @@
-﻿function sgUpdate(id: number)
+﻿$("#confirmDelete").on("show.bs.modal", function (event)
+{
+  var $button = $(event.relatedTarget); // Button that triggered the modal
+  var id = parseInt($button.data("groupid")); // Extract info from data-* attributes
+
+  var $modal = $(this);
+  
+  $modal.find(".modal-body p").text("Are you sure you want to delete stock group " + id + "?");
+
+  $modal.find(".modal-footer .btn-ok").off("click").on("click", function ()
+  {
+    sgDelete(id);
+  });
+})
+
+function sgUpdate(id: number)
 {
   Api.Update("/stock-groups/" + id, { Name: $("#txtGroup_" + id).val().trim() }, function (data)
   {

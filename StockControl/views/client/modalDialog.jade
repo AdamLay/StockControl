@@ -1,0 +1,12 @@
+﻿.modal.fade(id=dialog.Id, tabindex="-1", role="dialog")
+    .modal-dialog
+        .modal-content
+            .modal-header
+                button.close(data-dismiss="modal")
+                    span &times;
+                h4.modal-title #{dialog.Title}
+            .modal-body
+                p #{dialog.Message}
+            .modal-footer
+                button.btn.btn-default(data-dismiss="modal") Close
+                button.btn.btn-primary.btn-ok(onclick=dialog.OnClick, data-dismiss="modal") #{dialog.ButtonLabel}

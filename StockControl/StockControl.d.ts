@@ -23,3 +23,12 @@ interface IAuditEntry extends IModel
   Message: string;
   Timestamp: string;
 }
+
+interface IModalDialog
+{
+  Id: string;
+  Title: string;
+  Message: string;
+  OnClick: string;
+  ButtonLabel: string;
+}

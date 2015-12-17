@@ -11,7 +11,7 @@
   clear: both;
   height: 0;
 }
-html {
+body {
   overflow-y: scroll;
 }
 html,
