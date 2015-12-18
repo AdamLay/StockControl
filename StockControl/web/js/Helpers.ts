@@ -1,5 +1,16 @@
 ﻿class Helpers
 {
+  public static Events = {
+    StockAdd: "stock add",
+    StockUpdate: "stock update",
+    StockDelete: "stock delete",
+    StockIssue: "stock issue",
+    StockAdjust: "stock adjust",
+    GroupUpdate: "stock-group update",
+    GroupDelete: "stock-group delete",
+    Notification: "notification"
+  }
+
   public static GetIcon(name: string): string
   {
     var icon = "";

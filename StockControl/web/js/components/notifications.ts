@@ -1,15 +1,18 @@
 ﻿$(document).ready(function ()
 {
-  Notifications.NotificationEvent.Subscribe(function (data: IAuditEntry)
+  Notifications.NotificationEvent.Subscribe(function (data: IAuditEntry<any>)
   {
     var $entry = $(Templates["notification"]({ item: data })).hide().addClass("new");
 
     $("#lstNotifications").prepend($entry);
 
-    $("#lstNotifications a").last().slideUp(200, function () { $(this).remove(); });
+    var $all = $("#lstNotifications a");
+
+    if ($all.length > 6)
+      $all.last().slideUp(200, function () { $(this).remove(); });
 
     $entry.slideDown(200);
 
-    $entry.on("mouseover", function () { $(this).removeClass("new"); });    
+    $entry.on("mouseover", function () { $(this).removeClass("new"); });
   });
 });

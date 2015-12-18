@@ -62,11 +62,14 @@ var SocketManager = (function () {
         var skt = io();
         skt.on("connect", SocketManager.OnConnect);
         skt.on("disconnect", SocketManager.OnDisconnect);
-        skt.on("notification", Notifications.OnNotification);
-        skt.on("stock issue", Inventory.OnStockIssue);
-        skt.on("stock add", Inventory.OnStockAdd);
-        skt.on("stock update", Inventory.OnStockUpdate);
-        skt.on("stock-group update", StockGroups.OnStockGroupUpdate);
+        skt.on(Helpers.Events.Notification, Notifications.OnNotification);
+        skt.on(Helpers.Events.StockIssue, Inventory.OnStockIssue);
+        skt.on(Helpers.Events.StockAdd, Inventory.OnStockAdd);
+        skt.on(Helpers.Events.StockUpdate, Inventory.OnStockUpdate);
+        skt.on(Helpers.Events.StockAdjust, Inventory.OnStockAdjust);
+        skt.on(Helpers.Events.StockDelete, Inventory.OnStockDelete);
+        skt.on(Helpers.Events.GroupUpdate, StockGroups.OnStockGroupUpdate);
+        skt.on(Helpers.Events.GroupDelete, StockGroups.OnStockGroupDelete);
         SocketManager._socket = skt;
     };
     SocketManager.Emit = function (evt, data) {
@@ -87,12 +90,10 @@ var Throttler = (function () {
             Throttler.ThrottleTimeouts = [];
         var existing = Throttler.GetFromId(id);
         if (existing && startNow) {
-            console.log("existing");
             clearTimeout(existing.TimeoutId);
             existing.TimeoutId = setTimeout(callback, timeout);
         }
         else {
-            console.log("new timeout");
             var throttleTimeout = {
                 ThrottleId: id,
                 Timeout: timeout,
@@ -161,7 +162,7 @@ var Api = (function () {
             type: "PUT",
             data: data,
             success: function (data) {
-                console.log(url + " updated");
+                console.log(url + (data.Success ? "" : " not") + " updated");
                 callback(data);
             }
         });
@@ -196,15 +197,15 @@ var Notifications = (function () {
     function Notifications() {
     }
     Notifications.Init = function () {
-        if ($("#lstNotifications").length > 0) {
-            Notifications.UpdateInterval = setInterval(function () {
-                $("#lstNotifications [data-time]").each(function () {
-                    var $this = $(this);
-                    var dt = new Date(parseFloat($this.attr("data-time")));
-                    $this.text(Helpers.FormatDate(dt));
-                });
-            }, 5000);
-        }
+        if ($("#lstNotifications").length == 0)
+            return;
+        Notifications.UpdateInterval = setInterval(function () {
+            $("#lstNotifications [data-time]").each(function () {
+                var $this = $(this);
+                var dt = new Date(parseFloat($this.attr("data-time")));
+                $this.text(Helpers.FormatDate(dt));
+            });
+        }, 5000);
     };
     Notifications.OnNotification = function (data) {
         Notifications.NotificationEvent.Trigger(data);
@@ -212,29 +213,10 @@ var Notifications = (function () {
     Notifications.NotificationEvent = new PublishedEvent();
     return Notifications;
 })();
-var Notification = (function () {
-    function Notification(data) {
-        this.Id = data.Id;
-        this.Title = data.Title;
-        this.Message = data.Message;
-        this.Timestamp = data.Timestamp;
-    }
-    Notification.prototype.GetFormattedTimestamp = function () {
-        return Helpers.FormatDate(new Date(this.Timestamp));
-    };
-    Notification.prototype.GetTimestampTicks = function () {
-        return new Date(this.Timestamp).getTime() + "";
-    };
-    Notification.prototype.GetIcon = function () {
-        return Helpers.GetIcon(this.Title);
-    };
-    return Notification;
-})();
 var Inventory = (function () {
     function Inventory() {
     }
     Inventory.IssueStock = function (id) {
-        var $item = $("[data-stockid=\"" + id + "\"]");
         Api.Get("/api/stock/issue/" + id, function (data) {
             if (!data.Success) {
                 alertTop(data.Message, data.Success);
@@ -250,9 +232,17 @@ var Inventory = (function () {
     Inventory.OnStockUpdate = function (item) {
         Inventory.StockUpdateEvent.Trigger(item);
     };
+    Inventory.OnStockAdjust = function (adjust) {
+        Inventory.StockAdjustEvent.Trigger(adjust);
+    };
+    Inventory.OnStockDelete = function (id) {
+        Inventory.StockDeleteEvent.Trigger(id);
+    };
     Inventory.StockIssueEvent = new PublishedEvent();
     Inventory.StockAddEvent = new PublishedEvent();
     Inventory.StockUpdateEvent = new PublishedEvent();
+    Inventory.StockAdjustEvent = new PublishedEvent();
+    Inventory.StockDeleteEvent = new PublishedEvent();
     return Inventory;
 })();
 var StockGroups = (function () {
@@ -261,6 +251,10 @@ var StockGroups = (function () {
     StockGroups.OnStockGroupUpdate = function (group) {
         StockGroups.StockGroupUpdateEvent.Trigger(group);
     };
+    StockGroups.OnStockGroupDelete = function (id) {
+        StockGroups.StockGroupDeleteEvent.Trigger(id);
+    };
     StockGroups.StockGroupUpdateEvent = new PublishedEvent();
+    StockGroups.StockGroupDeleteEvent = new PublishedEvent();
     return StockGroups;
 })();

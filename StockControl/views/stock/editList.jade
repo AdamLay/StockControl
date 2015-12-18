@@ -14,21 +14,33 @@ block content
         thead
             tr
                 th Name
+                th Quantity
                 th Update
                 th Delete
         tbody
             each item in items
-                tr(id="row_#{item.Id}")
+                tr(data-stockid=item.Id)
                     td
                         span #{item.Name}
+                    td
+                        .btn-group.quantity-controls
+                            .btn.btn-default(onclick="quantityAdjust(#{item.Id}, -1)")
+                                i.fa.fa-minus
+                            .btn.btn-default.quantity-display(disabled="disabled", data-original=item.Quantity) #{item.Quantity}
+                            .btn.btn-default(onclick="quantityAdjust(#{item.Id}, 1)")
+                                i.fa.fa-plus
                     td
                         a.btn.btn-default(href="edit/#{item.Id}")
                             i.fa.fa-pencil
                             |  Update
                     td
-                        button.btn.btn-danger(onclick="")
+                        button.btn.btn-danger(data-toggle="modal", data-target="#confirmDelete", data-stockid=item.Id)
                             i.fa.fa-trash-o
                             |  Delete
+                            
+    - var dialog = { Id: "confirmDelete", Title: "Confirm Delete", Message: "", OnClick: null, ButtonLabel: "Delete" }
 
-block scripts
+    include ../client/modalDialog
     
+block scripts
+    script(src="/js/stock/edit.js")

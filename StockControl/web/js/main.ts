@@ -118,19 +118,19 @@ class SocketManager
   {
     var skt = io();
 
-    // Here we attach our functions to events
-    // So for example whenever the "connect" event is received,
-    // the SocketManager.OnConnect will execute
     skt.on("connect", SocketManager.OnConnect);
     skt.on("disconnect", SocketManager.OnDisconnect);
 
-    skt.on("notification", Notifications.OnNotification);
+    skt.on(Helpers.Events.Notification, Notifications.OnNotification);
 
-    skt.on("stock issue", Inventory.OnStockIssue);
-    skt.on("stock add", Inventory.OnStockAdd);
-    skt.on("stock update", Inventory.OnStockUpdate);
+    skt.on(Helpers.Events.StockIssue, Inventory.OnStockIssue);
+    skt.on(Helpers.Events.StockAdd, Inventory.OnStockAdd);
+    skt.on(Helpers.Events.StockUpdate, Inventory.OnStockUpdate);
+    skt.on(Helpers.Events.StockAdjust, Inventory.OnStockAdjust);
+    skt.on(Helpers.Events.StockDelete, Inventory.OnStockDelete);
 
-    skt.on("stock-group update", StockGroups.OnStockGroupUpdate);
+    skt.on(Helpers.Events.GroupUpdate, StockGroups.OnStockGroupUpdate);
+    skt.on(Helpers.Events.GroupDelete, StockGroups.OnStockGroupDelete);
 
     SocketManager._socket = skt;
   }
@@ -147,15 +147,12 @@ class SocketManager
 
   public static OnConnect(): void
   {
-    // What do we want to do when we're successfully connected?
-    // Probably get a list of stock
+
   }
 
   public static OnDisconnect(): void
   {
-    // What do we want to do when we've disconnected or lost connection?
-    // Probably show that there's an error communicating with the server
-    // and disable some UI features
+
   }
 }
 
@@ -182,14 +179,12 @@ class Throttler
 
     if (existing && startNow)
     {
-      console.log("existing");
       clearTimeout(existing.TimeoutId);
 
       existing.TimeoutId = setTimeout(callback, timeout);
     }
     else
     {
-      console.log("new timeout");
       var throttleTimeout = {
         ThrottleId: id,
         Timeout: timeout,
@@ -292,7 +287,7 @@ class Api
       data: data,
       success: function (data)
       {
-        console.log(url + " updated");
+        console.log(url + (data.Success ? "" : " not") + " updated");
 
         callback(data);
       }
@@ -338,58 +333,27 @@ class Notifications
 
   public static Init(): void
   {
-    if ($("#lstNotifications").length > 0)
+    if ($("#lstNotifications").length == 0)
+      return;
+
+    Notifications.UpdateInterval = setInterval(function ()
     {
-      Notifications.UpdateInterval = setInterval(function ()
+      $("#lstNotifications [data-time]").each(function ()
       {
-        $("#lstNotifications [data-time]").each(function ()
-        {
-          var $this = $(this);
+        var $this = $(this);
 
-          var dt = new Date(parseFloat($this.attr("data-time")));
+        var dt = new Date(parseFloat($this.attr("data-time")));
 
-          $this.text(Helpers.FormatDate(dt));
-        });
-      }, 5000);
-    }
+        $this.text(Helpers.FormatDate(dt));
+      });
+    }, 5000);
   }
 
-  public static NotificationEvent = new PublishedEvent<IAuditEntry>();
+  public static NotificationEvent = new PublishedEvent<IAuditEntry<any>>();
 
-  public static OnNotification(data: IAuditEntry): void
+  public static OnNotification(data: IAuditEntry<any>): void
   {
     Notifications.NotificationEvent.Trigger(data);
-  }
-}
-
-class Notification implements IAuditEntry
-{
-  public Id: number;
-  public Title: string;
-  public Message: string;
-  public Timestamp: string;
-
-  constructor(data: IAuditEntry)
-  {
-    this.Id = data.Id;
-    this.Title = data.Title;
-    this.Message = data.Message;
-    this.Timestamp = data.Timestamp;
-  }
-
-  public GetFormattedTimestamp(): string
-  {
-    return Helpers.FormatDate(new Date(this.Timestamp));
-  }
-
-  public GetTimestampTicks(): string
-  {
-    return new Date(this.Timestamp).getTime() + "";
-  }
-
-  public GetIcon(): string
-  {
-    return Helpers.GetIcon(this.Title);
   }
 }
 
@@ -397,8 +361,6 @@ class Inventory
 {
   public static IssueStock(id: number): void
   {
-    var $item = $("[data-stockid=\"" + id + "\"]");
-
     Api.Get("/api/stock/issue/" + id, function (data)
     {
       if (!data.Success)
@@ -428,6 +390,20 @@ class Inventory
   {
     Inventory.StockUpdateEvent.Trigger(item);
   }
+
+  public static StockAdjustEvent = new PublishedEvent<IStockAdjust>();
+
+  public static OnStockAdjust(adjust: IStockAdjust): void
+  {
+    Inventory.StockAdjustEvent.Trigger(adjust);
+  }
+
+  public static StockDeleteEvent = new PublishedEvent<number>();
+
+  public static OnStockDelete(id: number): void
+  {
+    Inventory.StockDeleteEvent.Trigger(id);
+  }
 }
 
 class StockGroups
@@ -437,5 +413,12 @@ class StockGroups
   public static OnStockGroupUpdate(group: IStockGroup): void
   {
     StockGroups.StockGroupUpdateEvent.Trigger(group);
+  }
+
+  public static StockGroupDeleteEvent = new PublishedEvent<number>();
+
+  public static OnStockGroupDelete(id: number): void
+  {
+    StockGroups.StockGroupDeleteEvent.Trigger(id);
   }
 }

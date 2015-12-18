@@ -44,6 +44,16 @@ var Helpers = (function () {
         }
         return str;
     };
+    Helpers.Events = {
+        StockAdd: "stock add",
+        StockUpdate: "stock update",
+        StockDelete: "stock delete",
+        StockIssue: "stock issue",
+        StockAdjust: "stock adjust",
+        GroupUpdate: "stock-group update",
+        GroupDelete: "stock-group delete",
+        Notification: "notification"
+    };
     return Helpers;
 })();
 module.exports = Helpers;

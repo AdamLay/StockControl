@@ -17,11 +17,19 @@ interface IStockGroup extends IModel
   Name: string;
 }
 
-interface IAuditEntry extends IModel
+interface IStockAdjust
+{
+  Id: number;
+  Quantity: number;
+}
+
+interface IAuditEntry<T> extends IModel
 {
   Title: string;
   Message: string;
   Timestamp: string;
+  OriginalData?: T;
+  NewData?: T;
 }
 
 interface IModalDialog
