@@ -11,6 +11,8 @@
     Notification: "notification"
   }
 
+  public static ErrorCodes = ErrorCodes;
+
   public static GetIcon(name: string): string
   {
     var icon = "";
@@ -78,6 +80,12 @@
     }
     return str;
   }
+}
+
+enum ErrorCodes
+{
+  PasswordsDontMatch,
+  UserExists
 }
 
 module.exports = Helpers;

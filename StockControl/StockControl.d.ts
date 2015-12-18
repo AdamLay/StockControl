@@ -1,4 +1,18 @@
-﻿interface IModel
+﻿interface IUser
+{
+  Id?: number;
+  Username: string;
+  Password: string;
+  AuthToken?: string;
+}
+
+interface IAuthToken
+{
+  Token: string;
+  Username: string;
+}
+
+interface IModel
 {
   Id?: number;
 }

@@ -24,6 +24,8 @@
     <Content Include="package.json" />
     <Content Include="Procfile" />
     <Content Include="README.md" />
+    <Content Include="views\auth\login.jade" />
+    <Content Include="views\auth\register.jade" />
     <Content Include="views\client\auditEntry.jade" />
     <Content Include="views\client\modalDialog.jade" />
     <Content Include="views\client\notification.jade" />
@@ -32,6 +34,7 @@
     <Content Include="views\partials\reorders.jade" />
     <Content Include="views\stock\editList.jade" />
     <Content Include="views\stock\edit.jade" />
+    <Content Include="views\stock\stockItemForm.jade" />
     <Content Include="web\styles\main.css" />
     <Content Include="web\styles\main.min.css" />
     <Content Include="web\styles\timeline.css" />
@@ -46,7 +49,6 @@
     <Content Include="views\partials\stockList.jade" />
     <Content Include="views\stock-groups\edit.jade" />
     <Content Include="views\stock-groups\new.jade" />
-    <Content Include="views\stock\index.jade" />
     <Content Include="views\stock\new.jade" />
     <TypeScriptCompile Include="d.ts\serve-static.d.ts" />
     <TypeScriptCompile Include="StockControl.d.ts" />
@@ -71,6 +73,7 @@
     <Folder Include="views\" />
     <Folder Include="views\audit\" />
     <Folder Include="views\client\" />
+    <Folder Include="views\auth\" />
     <Folder Include="views\stock-groups\" />
     <Folder Include="views\partials\" />
     <Folder Include="views\stock\" />
