@@ -194,10 +194,10 @@ app.get("/api/stock/issue/:id", function (req, res)
 
     // Update in database
     Data.Update("Stock", { Quantity: --item.Quantity }, "Id = " + id);
-    
+
     // Add audit log
     Audit.AddLog(Audit.Types.StockIssue, "1 " + item.Name + " has been issued.");
-    
+
     // Send response
     res.send(JSON.stringify({ Success: true, Quantity: item.Quantity }));
 
@@ -218,7 +218,7 @@ app.get("/api/stock/issue/:id", function (req, res)
 
 //#region Stock Groups
 
-//GET 
+//GET
 app.get("/stock-groups/new", function (req, res)
 {
   res.render("stock-groups/new", { success: req.query.success });
@@ -427,7 +427,7 @@ class Data
       callback(rows.slice(0, count));
     });
   }
-  
+
   // Will work provided the object matches table structure
   public static Insert(table: string, data: Array<Object>)
   {

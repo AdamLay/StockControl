@@ -1,13 +1,11 @@
 $(document).ready(function () {
     Api.Get("/api/stock-groups", function (data) {
         if (!data.Success) {
-            // Message about adding some stock
             var $msg = $("<div>", {
                 "class": "alert alert-danger",
                 "text": "Please add some Stock Groups before adding a Stock Item."
             });
             $("main.container").prepend($msg);
-            // Disable submitting
             $("#btnSubmit").prop("disabled", "disabled");
             return;
         }
@@ -24,7 +22,6 @@ $("#txtName").on("keyup", function () {
     var $this = $(this);
     new Throttler("NameKeyUp", 800, function () {
         Api.Get("/api/stock/" + encodeURIComponent($this.val()), function (res) {
-            // Error if stock item found
             if (res.Success) {
                 $("#msgExisting").fadeIn(100);
                 Validation.Error($this);

@@ -1,4 +1,3 @@
-//#region Prototypes
 Array.prototype.where = function (predicate) {
     var results = [];
     for (var i = 0; i < this.length; i++)
@@ -30,8 +29,6 @@ Array.prototype.groupBy = function (prop) {
     }
     return groups;
 };
-//#endregion
-//#region Helpers
 function alertTop(msg, success) {
     var $pop = $("<div>", {
         "class": "alert " + (success ? "alert-success" : "alert-danger"),
@@ -51,10 +48,8 @@ function getQueryStringValue(key) {
     var results = regex.exec(window.location.href);
     return results ? decodeURIComponent(results[1].replace(/\+/g, " ")) : null;
 }
-// ...
 if (!window.module)
     window.module = {};
-//#endregion
 $(document).ready(function () {
     SocketManager.Init();
     Notifications.Init();
@@ -64,9 +59,6 @@ var SocketManager = (function () {
     }
     SocketManager.Init = function () {
         var skt = io();
-        // Here we attach our functions to events
-        // So for example whenever the "connect" event is received,
-        // the SocketManager.OnConnect will execute
         skt.on("connect", SocketManager.OnConnect);
         skt.on("disconnect", SocketManager.OnDisconnect);
         skt.on("notification", Notifications.OnNotification);
@@ -82,13 +74,8 @@ var SocketManager = (function () {
         SocketManager._socket.on(evt, handler);
     };
     SocketManager.OnConnect = function () {
-        // What do we want to do when we're successfully connected?
-        // Probably get a list of stock
     };
     SocketManager.OnDisconnect = function () {
-        // What do we want to do when we've disconnected or lost connection?
-        // Probably show that there's an error communicating with the server
-        // and disable some UI features
     };
     return SocketManager;
 })();
@@ -130,7 +117,6 @@ var Throttler = (function () {
     };
     return Throttler;
 })();
-//#endregion
 var Validation = (function () {
     function Validation() {
     }
