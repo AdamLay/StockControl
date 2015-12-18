@@ -1,8 +1,11 @@
 var port = process.env.PORT || 8080;
 var path = require("path");
 var express = require("express");
+var session = require("express-session");
 var bodyParser = require("body-parser");
-var http = require('http');
+var http = require("http");
+var bcrypt = require("bcrypt");
+var uuid = require("uuid");
 var app = express();
 var groupBy = function (arr, prop, nameProp) {
     var groups = {};
@@ -19,6 +22,19 @@ app.set("view engine", "jade");
 app.locals.Helpers = Helpers;
 app.use(express.static(path.join(__dirname, "web")));
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(session({ secret: "sc" }));
+app.use(function (req, res, next) {
+    console.log(req.method + " " + req.url);
+    var user = null;
+    Authentication.IsValid(user, function (valid) {
+        if (!valid) {
+            res.redirect("/login");
+            return;
+        }
+        res.header("auth-username", user.Username);
+        next();
+    });
+});
 app.get(["/", "/index"], function (req, res) {
     StockControl.StockGet(function (stock) {
         var groups = groupBy(stock, "StockGroupId", "StockGroup");
@@ -29,6 +45,44 @@ app.get(["/", "/index"], function (req, res) {
                 notifications: Audit.SortDesc(audit).slice(0, 6)
             });
         });
+    });
+});
+app.get("/login", function (req, res) {
+    res.render("auth/login");
+});
+app.post("/login", function (req, res) {
+    var user = {
+        Username: req.body.username.trim(),
+        Password: req.body.password
+    };
+    Authentication.Login(user.Username, user.Password, function (success) {
+        if (!success) {
+            res.redirect("/login?success=false");
+            return;
+        }
+        res.redirect("/index");
+    });
+});
+app.get("/register", function (req, res) {
+    res.render("auth/register");
+});
+app.post("/register", function (req, res) {
+    var usr = req.body.username.trim();
+    var pwd1 = req.body.password;
+    var pwd2 = req.body.passwordConfirm;
+    if (pwd1 != pwd2) {
+        res.redirect("/register?success=false&err=" + helpers.ErrorCodes.PasswordsDontMatch);
+        return;
+    }
+    Authentication.Register(usr, pwd1, function (success) {
+        if (success) {
+            Authentication.Login(usr, pwd, function () {
+                res.redirect("/index");
+            });
+        }
+        else {
+            res.redirect("/register?success=false&err=" + helpers.ErrorCodes.UserExists);
+        }
     });
 });
 app.get("/stock/new", function (req, res) {
@@ -245,6 +299,8 @@ var Data = (function () {
         db.run("CREATE TABLE if not exists Stock (Id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT NOT NULL, Quantity INTEGER NOT NULL, Reorder INTEGER, StockGroupId INTEGER);");
         db.run("CREATE TABLE if not exists StockGroups (Id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT NOT NULL);");
         db.run("CREATE TABLE if not exists Audit (Id INTEGER PRIMARY KEY AUTOINCREMENT, AuditType INTEGER NOT NULL, Message TEXT NOT NULL, Timestamp TEXT NOT NULL, OriginalData TEXT, NewData TEXT);");
+        db.run("CREATE TABLE if not exists Users (Id INTEGER PRIMARY KEY AUTOINCREMENT, Username TEXT NOT NULL, Password TEXT NOT NULL);");
+        db.run("CREATE TABLE if not exists AuthTokens (Token TEXT PRIMARY KEY, Username TEXT NOT NULL);");
         Data._db = db;
     };
     Data.Get = function (table, query, callback) {
@@ -257,7 +313,7 @@ var Data = (function () {
             callback(rows.slice(0, count));
         });
     };
-    Data.Insert = function (table, data) {
+    Data.Insert = function (table, data, callback) {
         if (data.length < 1)
             return;
         var props = "";
@@ -277,7 +333,7 @@ var Data = (function () {
                 vals += val;
             }
             var query = "INSERT INTO " + table + "(" + props + ") VALUES (" + vals + ")";
-            Data._db.run(query);
+            Data._db.run(query, callback);
         }
     };
     Data.Update = function (table, set, where, callback) {
@@ -312,8 +368,9 @@ var StockControl = (function () {
         });
     };
     StockControl.StockAdd = function (item, callback) {
-        Data.Insert("Stock", [item]);
-        callback(item);
+        Data.Insert("Stock", [item], function () {
+            callback(item);
+        });
     };
     StockControl.StockGroupGet = function (callback, name) {
         Data.Get("StockGroups", typeof (name) == "number" ? "Id = " + name : name ? "Name = '" + name + "'" : null, function (result) {
@@ -321,8 +378,9 @@ var StockControl = (function () {
         });
     };
     StockControl.StockGroupAdd = function (group, callback) {
-        Data.Insert("StockGroups", [group]);
-        callback(group);
+        Data.Insert("StockGroups", [group], function () {
+            callback(group);
+        });
     };
     return StockControl;
 })();
@@ -339,25 +397,25 @@ var Audit = (function () {
             audit.NewData = newData;
         if (originalData)
             audit.OriginalData = originalData;
-        Data.Insert("Audit", [audit]);
-        Data.Custom(function (db) {
-            db.get("SELECT last_insert_rowid() as Id", function (err, row) {
-                audit.Id = row.Id;
-                io.emit(Helpers.Events.Notification, audit);
+        Data.Insert("Audit", [audit], function () {
+            Data.Custom(function (db) {
+                db.get("SELECT last_insert_rowid() as Id", function (err, row) {
+                    audit.Id = row.Id;
+                    io.emit(Helpers.Events.Notification, audit);
+                });
             });
-        });
-    };
-    Audit.GetLogEntries = function (type, callback) {
-        Data.GetTop("Audit", type ? { Title: type } : null, 100, function (results) {
-            callback(results);
-        });
-    };
-    Audit.SortDesc = function (arr) {
-        return arr.sort(function (a, b) {
-            var d1 = new Date(a.Timestamp);
-            var d2 = new Date(b.Timestamp);
-            return d1 > d2 ? -1 : d2 > d1 ? 1 : 0;
-        });
+        }, public, static, GetLogEntries(type, string, callback, Function), {
+            Data: .GetTop("Audit", type ? { Title: type } : null, 100, function (results) {
+                callback(results);
+            })
+        }, public, static, SortDesc(arr, Array(), Array < IAuditEntry < T >>
+            {
+                return: arr.sort(function (a, b) {
+                    var d1 = new Date(a.Timestamp);
+                    var d2 = new Date(b.Timestamp);
+                    return d1 > d2 ? -1 : d2 > d1 ? 1 : 0;
+                })
+            }));
     };
     Audit.Types = {
         StockIssue: "Stock Issue",
@@ -370,4 +428,42 @@ var Audit = (function () {
         StockGroupRemove: "Stock Group Delete"
     };
     return Audit;
+})();
+var Authentication = (function () {
+    function Authentication() {
+    }
+    Authentication.Register = function (username, pwd, callback) {
+        Data.Get("Users", "Username = '" + username + "'", function (results) {
+            if (results.length > 0) {
+                callback(false);
+                return;
+            }
+            bcrypt.hash(pwd, 10, function (err, hash) {
+                Data.Insert("Users", [{ Username: username, Password: hash }], function () {
+                    callback(true);
+                });
+            });
+        });
+    };
+    Authentication.Login = function (username, pwd, callback) {
+        Data.Get("Users", "Username = '" + username + "'", function (results) {
+            if (results.length < 1) {
+                callback(false);
+                return;
+            }
+            var usr = results[0];
+            bcrypt.compare(pwd, usr.Password, function (err, res) {
+                if (res) {
+                    Data.Insert("AuthTokens", []);
+                }
+                callback(res);
+            });
+        });
+    };
+    Authentication.IsValid = function (user, callback) {
+        Data.Get("AuthTokens", "Token = '" + user.AuthToken + "' AND Username = '" + user.Username + "'", function (results) {
+            callback(results.length > 0);
+        });
+    };
+    return Authentication;
 })();

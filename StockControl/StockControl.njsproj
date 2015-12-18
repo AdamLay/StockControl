@@ -24,6 +24,8 @@
     <Content Include="package.json" />
     <Content Include="Procfile" />
     <Content Include="README.md" />
+    <Content Include="views\auth\login.jade" />
+    <Content Include="views\auth\register.jade" />
     <Content Include="views\client\auditEntry.jade" />
     <Content Include="views\client\modalDialog.jade" />
     <Content Include="views\client\notification.jade" />
@@ -72,6 +74,7 @@
     <Folder Include="views\" />
     <Folder Include="views\audit\" />
     <Folder Include="views\client\" />
+    <Folder Include="views\auth\" />
     <Folder Include="views\stock-groups\" />
     <Folder Include="views\partials\" />
     <Folder Include="views\stock\" />

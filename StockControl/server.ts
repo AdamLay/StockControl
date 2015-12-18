@@ -1,8 +1,11 @@
 ﻿var port = process.env.PORT || 8080;
 var path = require("path");
 var express = require("express");
+var session = require("express-session");
 var bodyParser = require("body-parser");
-var http = require('http');
+var http = require("http");
+var bcrypt = require("bcrypt");
+var uuid = require("uuid");
 
 var app = express();
 
@@ -36,6 +39,28 @@ app.locals.Helpers = Helpers;
 // Middleware
 app.use(express.static(path.join(__dirname, "web")));
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(session({ secret: "sc" }));
+
+// Authentication...
+app.use(function (req, res, next)
+{
+  console.log(req.method + " " + req.url);
+
+  var user = null;
+
+  Authentication.IsValid(user, function (valid)
+  {
+    if (!valid)
+    {
+      res.redirect("/login");
+      return;
+    }
+
+    res.header("auth-username", user.Username);
+
+    next();
+  });
+});
 
 //#region Set up routing
 
@@ -48,14 +73,79 @@ app.get(["/", "/index"], function (req, res)
     Audit.GetLogEntries(null, function (audit)
     {
       res.render("index",
-      {
-        stockGroups: groups,
-        reorders: stock.filter(function (stk) { return stk.Quantity <= stk.Reorder; }),
-        notifications: Audit.SortDesc(audit).slice(0, 6)
-      });
+        {
+          stockGroups: groups,
+          reorders: stock.filter(function (stk) { return stk.Quantity <= stk.Reorder; }),
+          notifications: Audit.SortDesc(audit).slice(0, 6)
+        });
     });
   });
 });
+
+//#region Auth
+
+// GET
+app.get("/login", function (req, res)
+{
+  res.render("auth/login");
+});
+
+// POST
+app.post("/login", function (req, res)
+{
+  var user: IUser = {
+    Username: req.body.username.trim(),
+    Password: req.body.password
+  };
+
+  Authentication.Login(user.Username, user.Password, function (success)
+  {
+    if (!success)
+    {
+      res.redirect("/login?success=false")
+      return;
+    }
+
+    res.redirect("/index");
+  });
+});
+
+// GET
+app.get("/register", function (req, res)
+{
+  res.render("auth/register");
+});
+
+// POST
+app.post("/register", function (req, res)
+{
+  var usr = req.body.username.trim();
+  var pwd1 = req.body.password;
+  var pwd2 = req.body.passwordConfirm;
+
+  if (pwd1 != pwd2)
+  {
+    res.redirect("/register?success=false&err=" + helpers.ErrorCodes.PasswordsDontMatch);
+    return;
+  }
+
+  Authentication.Register(usr, pwd1, function (success)
+  {
+    if (success)
+    {
+      Authentication.Login(usr, pwd, function ()
+      {
+        res.redirect("/index");
+      });
+    }
+    else
+    {
+      res.redirect("/register?success=false&err=" + helpers.ErrorCodes.UserExists);
+    }
+  });
+});
+
+//#endregion
 
 //#region Stock
 
@@ -457,6 +547,12 @@ class Data
     // Create Stock Groups Table
     db.run("CREATE TABLE if not exists Audit (Id INTEGER PRIMARY KEY AUTOINCREMENT, AuditType INTEGER NOT NULL, Message TEXT NOT NULL, Timestamp TEXT NOT NULL, OriginalData TEXT, NewData TEXT);");
 
+    // Create Users Table
+    db.run("CREATE TABLE if not exists Users (Id INTEGER PRIMARY KEY AUTOINCREMENT, Username TEXT NOT NULL, Password TEXT NOT NULL);");
+
+    // Create AuthTokens Table
+    db.run("CREATE TABLE if not exists AuthTokens (Token TEXT PRIMARY KEY, Username TEXT NOT NULL);");
+
     Data._db = db;
   }
 
@@ -477,7 +573,7 @@ class Data
   }
 
   // Will work provided the object matches table structure
-  public static Insert(table: string, data: Array<Object>)
+  public static Insert(table: string, data: Array<Object>, callback: Function)
   {
     if (data.length < 1)
       return;
@@ -501,10 +597,10 @@ class Data
 
         vals += j++ == 0 ? "" : ",";
 
-        if (typeof(val) == "object")
+        if (typeof (val) == "object")
           val = JSON.stringify(val);
 
-        if (typeof(val) == "string")
+        if (typeof (val) == "string")
           val = "'" + val + "'";
 
         vals += val;
@@ -512,7 +608,7 @@ class Data
 
       var query = "INSERT INTO " + table + "(" + props + ") VALUES (" + vals + ")";
 
-      Data._db.run(query);
+      Data._db.run(query, callback);
     }
   }
 
@@ -568,14 +664,15 @@ class StockControl
 
   public static StockAdd(item: IStockItem, callback: (result) => void): void
   {
-    Data.Insert("Stock", [item]);
-
-    callback(item);
+    Data.Insert("Stock", [item], function ()
+    {
+      callback(item);
+    });
   }
 
   public static StockGroupGet(callback: (result: Array<any>) => void, name?: string | number): void
   {
-    Data.Get("StockGroups", typeof(name) == "number" ? "Id = " + name : name ? "Name = '" + name + "'" : null, function (result)
+    Data.Get("StockGroups", typeof (name) == "number" ? "Id = " + name : name ? "Name = '" + name + "'" : null, function (result)
     {
       callback(result);
     });
@@ -583,9 +680,10 @@ class StockControl
 
   public static StockGroupAdd(group: IStockGroup, callback: (result) => void): void
   {
-    Data.Insert("StockGroups", [group]);
-
-    callback(group);
+    Data.Insert("StockGroups", [group], function ()
+    {
+      callback(group);
+    });
   }
 }
 
@@ -619,13 +717,13 @@ class Audit
     if (originalData)
       audit.OriginalData = originalData;
 
-    Data.Insert("Audit", [audit]);
-
-    Data.Custom(function (db)
+    Data.Insert("Audit", [audit], function ()
     {
-      db.get("SELECT last_insert_rowid() as Id", function (err, row)
+      Data.Custom(function (db)
       {
-        audit.Id = row.Id;
+        db.get("SELECT last_insert_rowid() as Id", function (err, row)
+        {
+          audit.Id = row.Id;
 
         io.emit(Helpers.Events.Notification, audit);
       });
@@ -648,6 +746,61 @@ class Audit
       var d2 = new Date(b.Timestamp);
 
       return d1 > d2 ? -1 : d2 > d1 ? 1 : 0;
+    });
+  }
+}
+
+class Authentication
+{
+  public static Register(username: string, pwd: string, callback: (success: boolean) => void): void
+  {
+    Data.Get("Users", "Username = '" + username + "'", function (results: Array<IUser>)
+    {
+      if (results.length > 0)
+      {
+        callback(false);
+        return;
+      }
+
+      bcrypt.hash(pwd, 10, function (err, hash)
+      {
+        Data.Insert("Users", [{ Username: username, Password: hash }], function ()
+        {
+          callback(true);
+        });
+      });
+    });
+  }
+
+  public static Login(username: string, pwd: string, callback: (success: boolean) => void): void
+  {
+    Data.Get("Users", "Username = '" + username + "'", function (results: Array<IUser>)
+    {
+      if (results.length < 1)
+      {
+        callback(false);
+        return;
+      }
+
+      var usr = results[0];
+
+      bcrypt.compare(pwd, usr.Password, function (err, res)
+      {
+        if (res)
+        {
+          Data.Insert("AuthTokens", []
+        }
+
+        callback(res);
+      });
+    });
+  }
+
+  public static IsValid(user: IUser, callback: (valid: boolean) => void): void
+  {
+    Data.Get("AuthTokens", "Token = '" + user.AuthToken + "' AND Username = '" + user.Username + "'", function (results)
+    {
+      callback(results.length > 0);
     });
   }
 }
