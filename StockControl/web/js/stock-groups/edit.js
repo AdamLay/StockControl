@@ -8,7 +8,7 @@ $("#confirmDelete").on("show.bs.modal", function (event) {
     });
 });
 function sgUpdate(id) {
-    Api.Update("/stock-groups/" + id, { Name: $("#txtGroup_" + id).val().trim() }, function (data) {
+    Api.Update("/stock-groups/edit/" + id, { Name: $("#txtGroup_" + id).val().trim() }, function (data) {
         var msg = data.Success ? "Name updated successfully" : "Name failed to update";
         alertTop(msg, data.Success);
     });

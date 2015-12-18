@@ -4,7 +4,7 @@
   var id = parseInt($button.data("groupid")); // Extract info from data-* attributes
 
   var $modal = $(this);
-  
+
   $modal.find(".modal-body p").text("Are you sure you want to delete stock group " + id + "?");
 
   $modal.find(".modal-footer .btn-ok").off("click").on("click", function ()
@@ -15,7 +15,7 @@
 
 function sgUpdate(id: number)
 {
-  Api.Update("/stock-groups/" + id, { Name: $("#txtGroup_" + id).val().trim() }, function (data)
+  Api.Update("/stock-groups/edit/" + id, { Name: $("#txtGroup_" + id).val().trim() }, function (data)
   {
     var msg = data.Success ? "Name updated successfully" : "Name failed to update";
 

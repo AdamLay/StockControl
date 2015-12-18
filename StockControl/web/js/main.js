@@ -53,6 +53,7 @@ if (!window.module)
 $(document).ready(function () {
     SocketManager.Init();
     Notifications.Init();
+    setTimeout(function () { $("#messageSuccess").slideUp(200); }, 3000);
 });
 var SocketManager = (function () {
     function SocketManager() {
@@ -64,6 +65,7 @@ var SocketManager = (function () {
         skt.on("notification", Notifications.OnNotification);
         skt.on("stock issue", Inventory.OnStockIssue);
         skt.on("stock add", Inventory.OnStockAdd);
+        skt.on("stock update", Inventory.OnStockUpdate);
         skt.on("stock-group update", StockGroups.OnStockGroupUpdate);
         SocketManager._socket = skt;
     };
@@ -245,8 +247,12 @@ var Inventory = (function () {
     Inventory.OnStockAdd = function (item) {
         Inventory.StockAddEvent.Trigger(item);
     };
+    Inventory.OnStockUpdate = function (item) {
+        Inventory.StockUpdateEvent.Trigger(item);
+    };
     Inventory.StockIssueEvent = new PublishedEvent();
     Inventory.StockAddEvent = new PublishedEvent();
+    Inventory.StockUpdateEvent = new PublishedEvent();
     return Inventory;
 })();
 var StockGroups = (function () {

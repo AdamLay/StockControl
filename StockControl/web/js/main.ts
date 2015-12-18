@@ -103,6 +103,9 @@ $(document).ready(function ()
   SocketManager.Init();
 
   Notifications.Init();
+
+  // Hide any success notifications after 3 seconds
+  setTimeout(function () { $("#messageSuccess").slideUp(200); }, 3000);
 });
 
 class SocketManager
@@ -125,6 +128,7 @@ class SocketManager
 
     skt.on("stock issue", Inventory.OnStockIssue);
     skt.on("stock add", Inventory.OnStockAdd);
+    skt.on("stock update", Inventory.OnStockUpdate);
 
     skt.on("stock-group update", StockGroups.OnStockGroupUpdate);
 
@@ -403,7 +407,7 @@ class Inventory
       }
     });
   }
-  
+
   public static StockIssueEvent = new PublishedEvent<IStockItem>();
 
   public static OnStockIssue(item: IStockItem): void
@@ -416,6 +420,13 @@ class Inventory
   public static OnStockAdd(item: IStockItem): void
   {
     Inventory.StockAddEvent.Trigger(item);
+  }
+
+  public static StockUpdateEvent = new PublishedEvent<IStockItem>();
+
+  public static OnStockUpdate(item: IStockItem): void
+  {
+    Inventory.StockUpdateEvent.Trigger(item);
   }
 }
 

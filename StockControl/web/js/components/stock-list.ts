@@ -28,6 +28,11 @@
     }
   });
 
+  Inventory.StockUpdateEvent.Subscribe(function (data: IStockItem)
+  {
+    $('[data-stockid="' + data.Id + '"]').replaceWith(Templates["stockItem"]({ item: data }));
+  });
+
   StockGroups.StockGroupUpdateEvent.Subscribe(function (group: IStockGroup)
   {
     $(".panel-heading[data-groupid=\"" + group.Id + "\"]").text(group.Name);

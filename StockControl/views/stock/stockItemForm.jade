@@ -1,0 +1,22 @@
+- var stockItem = item || {};
+- var method = method || "POST"
+
+form.col-sm-6(action="/stock/#{action}", method=method)
+    input(type="hidden", name="Id", value=(stockItem.Id))
+    .form-group
+        label.control-label(for="group") Stock Group
+        select#ddlGroups.form-control(name="group")
+            each grp in stockGroups
+                option(value=grp.Id, selected=(stockItem.StockGroupId == grp.Id ? "selected" : null)) #{grp.Name}
+    .form-group
+        label.control-label(for="name") Name
+        input#txtName.form-control(type="text", name="name", value=(stockItem.Name || ""))
+        span#msgExisting.help-block(style="display: none") A stock item with this name already exists
+    .form-group
+        label.control-label(for="quantity") Quantity
+        input#numQuantity.form-control(type="number", name="quantity", value=(stockItem.Quantity == undefined ? null : stockItem.Quantity))
+    .form-group
+        label.control-label(for="reorder") Reorder Level
+        input#numReorder.form-control(type="number", name="reorder", value=(stockItem.Reorder || null))
+    .form-group
+        input#btnSubmit.btn.btn-primary(type="submit")

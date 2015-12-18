@@ -32,30 +32,15 @@ app.get(["/", "/index"], function (req, res) {
         });
     });
 });
-app.get("/stock(/index)?", function (req, res) {
-    StockControl.StockGet(function (data) {
-        var groups = groupBy(data, "StockGroupId", "StockGroup");
-        res.render("stock/index", { stockGroups: groups });
-    });
-});
-app.get("/api/stock/:id", function (req, res) {
-    StockControl.StockGet(function (result) {
-        res.setHeader('Content-Type', 'application/json');
-        if (result.length > 0) {
-            res.send(JSON.stringify({ Success: true, Result: result[0] }));
-        }
-        else {
-            res.send(JSON.stringify({ Success: false }));
-        }
-    }, req.params.id);
-});
 app.get("/stock/new", function (req, res) {
-    res.render("stock/new", { success: req.query.success });
+    StockControl.StockGroupGet(function (groups) {
+        res.render("stock/new", { success: req.query.success, stockGroups: groups });
+    });
 });
 app.post("/stock/create", function (req, res) {
     var stockItem = {
         Name: req.body.name.trim(),
-        StockGroupId: req.body.group,
+        StockGroupId: parseInt(req.body.group),
         Quantity: parseInt(req.body.quantity),
         Reorder: parseInt(req.body.reorder)
     };
@@ -72,29 +57,60 @@ app.post("/stock/create", function (req, res) {
         }, stockItem.Name);
     });
 });
+app.get("/stock/edit/:id?", function (req, res) {
+    var id = req.params.id;
+    StockControl.StockGet(function (results) {
+        if (id) {
+            if (results.length != 1) {
+                res.render("stock/edit-list", { items: results });
+                return;
+            }
+            StockControl.StockGroupGet(function (stockGroups) {
+                res.render("stock/edit", { item: results[0], stockGroups: stockGroups });
+            });
+        }
+        else {
+            res.render("stock/editList", { success: req.query.success, items: results });
+        }
+    }, id ? parseInt(id) : null);
+});
+app.put("/stock/edit", function (req, res) {
+    res.setHeader('Content-Type', 'application/json');
+    var item = {
+        Id: parseInt(req.body.Id),
+        Name: req.body.name.trim(),
+        StockGroupId: parseInt(req.body.group),
+        Quantity: parseInt(req.body.quantity),
+        Reorder: parseInt(req.body.reorder)
+    };
+    Data.Custom(function (db) {
+        var query = "UPDATE Stock SET Name = '" + item.Name + "', Quantity = " + item.Quantity + ", Reorder = " + item.Reorder + ", StockGroupId = " + item.StockGroupId + " WHERE Id = " + item.Id;
+        db.run(query, function () {
+            Audit.AddLog(Audit.Types.StockUpdate, "Stock Item " + item.Id + " Updated: " + JSON.stringify(item));
+            io.sockets.emit("stock update", item);
+            res.send(JSON.stringify({ Success: true }));
+        });
+    });
+});
 app.delete("/stock/:id", function (req, res) {
     var id = req.params.id;
     StockControl.StockGet(function (results) {
         if (results.filter(function (m) { return m.Id == id; }).length == 1) {
-            StockControl.StockRemove({ Id: id });
+            Data.Delete("Stock", "Id = " + id);
             Audit.AddLog(Audit.Types.StockRemove, "Stock item deleted: " + results[0].Name);
         }
     });
 });
-app.get("/stock/edit/:id?", function (req, res) {
-    var id = req.params.id;
-    if (id) {
-        StockControl.StockGet(function (results) {
-            if (results.length != 1) {
-                res.render("stock/edit-list");
-                return;
-            }
-            res.render("stock/edit", { item: results[0] });
-        }, parseInt(id));
-    }
-    else {
-        res.render("stock/edit-list");
-    }
+app.get("/api/stock/:id", function (req, res) {
+    StockControl.StockGet(function (result) {
+        res.setHeader('Content-Type', 'application/json');
+        if (result.length > 0) {
+            res.send(JSON.stringify({ Success: true, Result: result[0] }));
+        }
+        else {
+            res.send(JSON.stringify({ Success: false }));
+        }
+    }, req.params.id);
 });
 app.get("/api/stock/issue/:id", function (req, res) {
     res.setHeader('Content-Type', 'application/json');
@@ -130,29 +146,12 @@ app.post("/stock-groups/create", function (req, res) {
         res.redirect(303, "/stock-groups/new?success=true");
     });
 });
-app.get("/api/stock-groups", function (req, res) {
-    StockControl.StockGroupGet(function (result) {
-        res.setHeader('Content-Type', 'application/json');
-        res.send(JSON.stringify({ Success: result.length > 0, Results: result }));
-    });
-});
-app.get("/api/stock-groups/:id", function (req, res) {
-    StockControl.StockGroupGet(function (result) {
-        res.setHeader('Content-Type', 'application/json');
-        if (result.length > 0) {
-            res.send(JSON.stringify({ Success: true, Result: result[0] }));
-        }
-        else {
-            res.send(JSON.stringify({ Success: false }));
-        }
-    }, req.params.id);
-});
 app.get("/stock-groups/edit", function (req, res) {
     StockControl.StockGroupGet(function (data) {
         res.render("stock-groups/edit", { groups: data });
     });
 });
-app.put("/stock-groups/:id", function (req, res) {
+app.put("/stock-groups/edit/:id", function (req, res) {
     var grp = {
         Id: parseInt(req.params.id),
         Name: req.body.Name.trim()
@@ -178,6 +177,23 @@ app.delete("/stock-groups/:id", function (req, res) {
             }
         });
     });
+});
+app.get("/api/stock-groups", function (req, res) {
+    StockControl.StockGroupGet(function (result) {
+        res.setHeader('Content-Type', 'application/json');
+        res.send(JSON.stringify({ Success: result.length > 0, Results: result }));
+    });
+});
+app.get("/api/stock-groups/:id", function (req, res) {
+    StockControl.StockGroupGet(function (result) {
+        res.setHeader('Content-Type', 'application/json');
+        if (result.length > 0) {
+            res.send(JSON.stringify({ Success: true, Result: result[0] }));
+        }
+        else {
+            res.send(JSON.stringify({ Success: false }));
+        }
+    }, req.params.id);
 });
 app.get("/audit(/index)?", function (req, res) {
     Audit.GetLogEntries(null, function (results) {
@@ -279,9 +295,6 @@ var StockControl = (function () {
     StockControl.StockAdd = function (item, callback) {
         Data.Insert("Stock", [item]);
         callback(item);
-    };
-    StockControl.StockRemove = function (item) {
-        Data.Delete("Stock", "Id = " + item.Id);
     };
     StockControl.StockGroupGet = function (callback, name) {
         Data.Get("StockGroups", name ? "Name = '" + name + "'" : null, function (result) {

@@ -9,22 +9,9 @@ block content
 
     h1.page-header Add Stock Item
 
-    form.col-sm-6(action="/stock/create", method="post")
-        .form-group
-            label.control-label(for="group") Stock Group
-            select#ddlGroups.form-control(name="group")
-        .form-group
-            label.control-label(for="name") Name
-            input#txtName.form-control(type="text", name="name")
-            span#msgExisting.help-block(style="display: none") A stock item with this name already exists
-        .form-group
-            label.control-label(for="quantity") Quantity
-            input#numQuantity.form-control(type="number", name="quantity")
-        .form-group
-            label.control-label(for="reorder") Reorder Level
-            input#numReorder.form-control(type="number", name="reorder")
-        .form-group
-            input#btnSubmit.btn.btn-default(type="submit")
+    - var action = "create";
+
+    include ./stockItemForm
 
 block scripts
     script(src="/js/stock/new.js")

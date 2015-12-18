@@ -1,23 +1,3 @@
-$(document).ready(function () {
-    Api.Get("/api/stock-groups", function (data) {
-        if (!data.Success) {
-            var $msg = $("<div>", {
-                "class": "alert alert-danger",
-                "text": "Please add some Stock Groups before adding a Stock Item."
-            });
-            $("main.container").prepend($msg);
-            $("#btnSubmit").prop("disabled", "disabled");
-            return;
-        }
-        var $ddl = $("#ddlGroups");
-        for (var i = 0; i < data.Results.length; i++) {
-            var res = data.Results[i];
-            var $opt = $("<option>", { "value": res.Id, "text": res.Name });
-            $ddl.append($opt);
-        }
-    });
-});
-setTimeout(function () { $("#messageSuccess").slideUp(200); }, 3000);
 $("#txtName").on("keyup", function () {
     var $this = $(this);
     new Throttler("NameKeyUp", 800, function () {

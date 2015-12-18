@@ -2,7 +2,23 @@
 
 block content
 
-    
+    h1.page-header Edit Stock Item #{item.Id}
+
+    - var action = "edit";
+    - var method = "PUT";
+
+    include ./stockItemForm
 
 block scripts
-    
+    script.
+        $("form").on("submit", function () {
+            Api.Update("/stock/edit", $("form").serialize(), function (data) {
+                if (data.Success) {
+                  window.location.replace("/stock/edit?success=true");
+                } else {
+                  window.location.replace("/stock/edit?success=false");
+                }
+            });
+            
+            return false;
+        });

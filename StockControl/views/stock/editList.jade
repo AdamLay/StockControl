@@ -2,6 +2,11 @@
 
 block content
 
+    if success == "true"
+        #messageSuccess.alert.alert-success Stock item updated successfully
+    else if success == "false"
+        #messageSuccess.alert.alert-danger Editing stock item failed
+
     .page-header
         h1 Edit Stock Items
         
@@ -17,11 +22,11 @@ block content
                     td
                         span #{item.Name}
                     td
-                        button.btn.btn-default(onclick="sgUpdate(#{group.Id})")
+                        a.btn.btn-default(href="edit/#{item.Id}")
                             i.fa.fa-pencil
                             |  Update
                     td
-                        button.btn.btn-danger(onclick="sgDelete(#{group.Id})")
+                        button.btn.btn-danger(onclick="")
                             i.fa.fa-trash-o
                             |  Delete
 

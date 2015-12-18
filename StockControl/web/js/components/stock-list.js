@@ -16,6 +16,9 @@ $(document).ready(function () {
             $list.append($item);
         }
     });
+    Inventory.StockUpdateEvent.Subscribe(function (data) {
+        $('[data-stockid="' + data.Id + '"]').replaceWith(Templates["stockItem"]({ item: data }));
+    });
     StockGroups.StockGroupUpdateEvent.Subscribe(function (group) {
         $(".panel-heading[data-groupid=\"" + group.Id + "\"]").text(group.Name);
     });
