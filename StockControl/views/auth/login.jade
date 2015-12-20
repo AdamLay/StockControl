@@ -1,16 +1,23 @@
-﻿form.form-signin
-    h2.form-signin-heading Login
-    .form-group
-        label.sr-only(for="email") Username
-        input.form-control(type="text", id="email", placeholder="Username", required, autofocus)
-    .form-group
-        label.sr-only(for="password") Password
-        input.form-control(type="password", id="password", placeholder="Password", required)
-        label.sr-only(for="password") Password
-        input.form-control(type="password", id="password", placeholder="Password", required)
-    .form-group
-        div.checkbox
-            label
-                input(type="checkbox", value="remember-me") Remember me
-    .form-group
-        input#btnSubmit.btn.btn-primary(type="submit", value="Login")
+﻿extends ../layout
+
+block content
+
+    .row
+        .col-md-4.col-center
+            form.form-signin
+                h2.form-signin-heading Login
+                .form-group
+                    label.sr-only(for="email") Username
+                    input.form-control(type="text", id="email", placeholder="Username", required, autofocus)
+                .form-group
+                    label.sr-only(for="password") Password
+                    input.form-control(type="password", id="password", placeholder="Password", required)
+                .form-group
+                    div.checkbox
+                        label
+                            input(type="checkbox", value="remember-me")
+                            | Remember me
+                .form-group
+                    input#btnSubmit.btn.btn-primary(type="submit", value="Login")
+                hr
+                a(href="/register") Register an account

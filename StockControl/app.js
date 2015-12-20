@@ -186,16 +186,30 @@ app.locals.Helpers = Helpers;
 app.use(express.static(path.join(__dirname, "web")));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(session({ secret: "sc" }));
+var unauthRoutes = [
+    "/login",
+    "/register"
+];
 // Authentication...
 app.use(function (req, res, next) {
     console.log(req.method + " " + req.url);
-    var user = null;
+    // Check to see if route needs auth
+    for (var i = 0; i < unauthRoutes.length; i++)
+        if (req.url == unauthRoutes[i]) {
+            next();
+            return;
+        }
+    var user = {
+        Username: req.session.username || "",
+        AuthToken: ""
+    };
     Authentication.IsValid(user, function (valid) {
         if (!valid) {
             res.redirect("/login");
-            return;
         }
-        res.header("auth-username", user.Username);
+        else {
+            res.header("auth-username", user.Username);
+        }
         next();
     });
 });
@@ -215,7 +229,7 @@ app.get(["/", "/index"], function (req, res) {
 //#region Auth
 // GET
 app.get("/login", function (req, res) {
-    res.render("auth/login");
+    res.render("auth/login", { hideHeader: true });
 });
 // POST
 app.post("/login", function (req, res) {
@@ -228,12 +242,13 @@ app.post("/login", function (req, res) {
             res.redirect("/login?success=false");
             return;
         }
+        req.session.username = user.Username;
         res.redirect("/index");
     });
 });
 // GET
 app.get("/register", function (req, res) {
-    res.render("auth/register");
+    res.render("auth/register", { hideHeader: true });
 });
 // POST
 app.post("/register", function (req, res) {
@@ -246,7 +261,7 @@ app.post("/register", function (req, res) {
     }
     Authentication.Register(usr, pwd1, function (success) {
         if (success) {
-            Authentication.Login(usr, pwd, function () {
+            Authentication.Login(usr, pwd1, function () {
                 res.redirect("/index");
             });
         }
@@ -666,9 +681,17 @@ var Authentication = (function () {
             var usr = results[0];
             bcrypt.compare(pwd, usr.Password, function (err, res) {
                 if (res) {
-                    Data.Insert("AuthTokens", []);
+                    var newToken = {
+                        Token: uuid.v1(),
+                        Username: username
+                    };
+                    Data.Insert("AuthTokens", [newToken], function () {
+                        callback(res);
+                    });
                 }
-                callback(res);
+                else {
+                    callback(res);
+                }
             });
         });
     };
