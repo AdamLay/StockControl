@@ -2,7 +2,7 @@
 {
   Id?: number;
   Username: string;
-  Password: string;
+  Password?: string;
   AuthToken?: string;
 }
 

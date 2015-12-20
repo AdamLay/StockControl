@@ -322,8 +322,14 @@ var Helpers = (function () {
         GroupDelete: "stock-group delete",
         Notification: "notification"
     };
+    Helpers.ErrorCodes = ErrorCodes;
     return Helpers;
 })();
+var ErrorCodes;
+(function (ErrorCodes) {
+    ErrorCodes[ErrorCodes["PasswordsDontMatch"] = 0] = "PasswordsDontMatch";
+    ErrorCodes[ErrorCodes["UserExists"] = 1] = "UserExists";
+})(ErrorCodes || (ErrorCodes = {}));
 module.exports = Helpers;
 
 this["Templates"] = this["Templates"] || {};

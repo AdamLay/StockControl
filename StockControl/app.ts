@@ -44,22 +44,39 @@ app.use(express.static(path.join(__dirname, "web")));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(session({ secret: "sc" }));
 
+var unauthRoutes = [
+  "/login",
+  "/register"
+];
+
 // Authentication...
 app.use(function (req, res, next)
 {
   console.log(req.method + " " + req.url);
 
-  var user = null;
+  // Check to see if route needs auth
+  for (var i = 0; i < unauthRoutes.length; i++)
+    if (req.url == unauthRoutes[i])
+    {
+      next();
+      return;
+    }
+
+  var user = {
+    Username: req.session.username || "",
+    AuthToken: ""
+  };
 
   Authentication.IsValid(user, function (valid)
   {
     if (!valid)
     {
       res.redirect("/login");
-      return;
     }
-
-    res.header("auth-username", user.Username);
+    else
+    {
+      res.header("auth-username", user.Username);
+    }
 
     next();
   });
@@ -90,7 +107,7 @@ app.get(["/", "/index"], function (req, res)
 // GET
 app.get("/login", function (req, res)
 {
-  res.render("auth/login");
+  res.render("auth/login", { hideHeader: true });
 });
 
 // POST
@@ -109,6 +126,8 @@ app.post("/login", function (req, res)
       return;
     }
 
+    req.session.username = user.Username;
+
     res.redirect("/index");
   });
 });
@@ -116,7 +135,7 @@ app.post("/login", function (req, res)
 // GET
 app.get("/register", function (req, res)
 {
-  res.render("auth/register");
+  res.render("auth/register", { hideHeader: true });
 });
 
 // POST
@@ -136,7 +155,7 @@ app.post("/register", function (req, res)
   {
     if (success)
     {
-      Authentication.Login(usr, pwd, function ()
+      Authentication.Login(usr, pwd1, function ()
       {
         res.redirect("/index");
       });
@@ -789,10 +808,20 @@ class Authentication
       {
         if (res)
         {
-          Data.Insert("AuthTokens", []
-        }
+          var newToken: IAuthToken = {
+            Token: uuid.v1(),
+            Username: username
+          };
 
-        callback(res);
+          Data.Insert("AuthTokens", [newToken], function ()
+          {
+            callback(res);
+          });
+        }
+        else
+        {
+          callback(res);
+        }
       });
     });
   }
