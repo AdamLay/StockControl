@@ -6,9 +6,9 @@ var http = require('http');
 
 var app = express();
 
-//#region helpers
+//#region Helpers
 
-var helpers = require("./web/js/Helpers.js");
+import Helpers = require("./web/js/Helpers");
 
 var groupBy = function (arr, prop, nameProp)
 {
@@ -29,11 +29,14 @@ var groupBy = function (arr, prop, nameProp)
 
 //#endregion
 
+//var auditTypes: AuditTypes = require("./web/js/Enums.AuditTypes.js");
+import Enums = require("./web/js/Enums");
+
 // Set up view engine
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "jade");
 
-app.locals.Helpers = helpers;
+app.locals.Helpers = Helpers;
 
 // Middleware
 app.use(express.static(path.join(__dirname, "web")));
@@ -89,11 +92,11 @@ app.post("/stock/create", function (req, res)
 
   StockControl.StockAdd(stockItem, (result) =>
   {
-    Audit.AddLog<IStockItem>(AuditTypes.StockAdd, "Added item: " + stockItem.Name, stockItem);
+    Audit.AddLog<IStockItem>(Enums.AuditTypes.StockAdd, "Added item: " + stockItem.Name, stockItem);
 
     StockControl.StockGet(function (result)
     {
-      io.sockets.emit(helpers.Events.StockAdd, result[0]);
+      io.sockets.emit(Helpers.Events.StockAdd, result[0]);
 
       res.redirect(303, "/stock/new?success=true");
     }, stockItem.Name);
@@ -148,9 +151,9 @@ app.put("/stock/edit", function (req, res)
 
       db.run(query, function ()
       {
-        Audit.AddLog<IStockItem>(AuditTypes.StockUpdate, item.Name + " item Updated.", item, existingItems[0]);
+        Audit.AddLog<IStockItem>(Enums.AuditTypes.StockUpdate, item.Name + " item Updated.", item, existingItems[0]);
 
-        io.sockets.emit(helpers.Events.StockUpdate, item);
+        io.sockets.emit(Helpers.Events.StockUpdate, item);
 
         res.send(JSON.stringify({ Success: true }));
       });
@@ -171,9 +174,9 @@ app.delete("/stock/:id", function (req, res)
     {
       Data.Delete("Stock", "Id = " + id, function ()
       {
-        Audit.AddLog<IStockItem>(AuditTypes.StockRemove, "Deleted item: " + results[0].Name, null, results[0]);
+        Audit.AddLog<IStockItem>(Enums.AuditTypes.StockRemove, "Deleted item: " + results[0].Name, null, results[0]);
 
-        io.sockets.emit(helpers.Events.StockDelete, id);
+        io.sockets.emit(Helpers.Events.StockDelete, id);
 
         res.send(JSON.stringify({ Success: true }));
       });
@@ -195,9 +198,9 @@ app.put("/stock/adjust/:id", function (req, res)
   {
     db.run("UPDATE Stock SET Quantity = " + adjust.Quantity + " WHERE Id = " + req.params.id, function ()
     {
-      Audit.AddLog<number>(AuditTypes.StockAdjust, "Adjusted from " + adjust.Original + " to " + adjust.Quantity, adjust.Quantity, adjust.Original)
+      Audit.AddLog<number>(Enums.AuditTypes.StockAdjust, "Adjusted from " + adjust.Original + " to " + adjust.Quantity, adjust.Quantity, adjust.Original)
 
-      io.emit(helpers.Events.StockAdjust, { Id: req.params.id, Quantity: adjust.Quantity });
+      io.emit(Helpers.Events.StockAdjust, { Id: req.params.id, Quantity: adjust.Quantity });
 
       res.send(JSON.stringify({ Success: true }));
     });
@@ -249,10 +252,10 @@ app.get("/api/stock/issue/:id", function (req, res)
     Data.Update("Stock", { Quantity: --item.Quantity }, "Id = " + id, function ()
     {
       // Add audit log
-      Audit.AddLog<number>(AuditTypes.StockIssue, "1 " + item.Name + " has been issued.", item.Quantity, item.Quantity + 1);
+      Audit.AddLog<number>(Enums.AuditTypes.StockIssue, "1 " + item.Name + " has been issued.", item.Quantity, item.Quantity + 1);
 
       // Trigger stock issue event
-      io.emit(helpers.Events.StockIssue, item);
+      io.emit(Helpers.Events.StockIssue, item);
 
       // Send response
       res.send(JSON.stringify({ Success: true, Quantity: item.Quantity }));
@@ -287,7 +290,7 @@ app.post("/stock-groups/create", function (req, res)
 
   StockControl.StockGroupAdd(stockGroup, (result) =>
   {
-    Audit.AddLog<IStockGroup>(AuditTypes.StockGroupAdd, "New group: ", stockGroup);
+    Audit.AddLog<IStockGroup>(Enums.AuditTypes.StockGroupAdd, "New group: ", stockGroup);
 
     res.redirect(303, "/stock-groups/new?success=true");
   });
@@ -316,9 +319,9 @@ app.put("/stock-groups/edit/:id", function (req, res)
   {
     Data.Update("StockGroups", { Name: grp.Name }, "Id = " + grp.Id, function ()
     {
-      Audit.AddLog<IStockGroup>(AuditTypes.StockGroupUpdate, "Updated group: " + grp.Id, grp, existingGroups[0]);
+      Audit.AddLog<IStockGroup>(Enums.AuditTypes.StockGroupUpdate, "Updated group: " + grp.Id, grp, existingGroups[0]);
 
-      io.emit(helpers.Events.GroupUpdate, grp);
+      io.emit(Helpers.Events.GroupUpdate, grp);
 
       res.send(JSON.stringify({ Success: true }));
     });
@@ -347,9 +350,9 @@ app.delete("/stock-groups/:id", function (req, res)
       {
         Data.Delete("StockGroups", "Id = " + sqlEscape(id), function ()
         {
-          Audit.AddLog<IStockGroup>(AuditTypes.StockGroupRemove, "Removed group: " + id, null, existingGroups[0]);
+          Audit.AddLog<IStockGroup>(Enums.AuditTypes.StockGroupRemove, "Removed group: " + id, null, existingGroups[0]);
 
-          io.emit(helpers.Events.GroupDelete, id);
+          io.emit(Helpers.Events.GroupDelete, id);
 
           res.send(JSON.stringify({ Success: true, Message: "" }));
         });
@@ -591,17 +594,7 @@ class StockControl
   }
 }
 
-enum AuditTypes
-{
-  StockIssue = 0,
-  StockAdd = 1,
-  StockUpdate = 2,
-  StockAdjust = 3,
-  StockRemove = 4,
-  StockGroupAdd = 5,
-  StockGroupUpdate = 6,
-  StockGroupRemove = 7
-}
+
 
 class Audit
 {
@@ -616,7 +609,7 @@ class Audit
     StockGroupRemove: "Stock Group Delete"
   }
 
-  public static AddLog<T>(t: AuditTypes, entry: string, newData: T, originalData?: T): void
+  public static AddLog<T>(t: Enums.AuditTypes, entry: string, newData: T, originalData?: T): void
   {
     var audit: IAuditEntry<T> = {
       AuditType: t,
@@ -639,7 +632,7 @@ class Audit
       {
         audit.Id = row.Id;
 
-        io.emit(helpers.Events.Notification, audit);
+        io.emit(Helpers.Events.Notification, audit);
       });
     });
   }

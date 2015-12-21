@@ -1,36 +1,57 @@
-class Helpers
+import Enums = require("./Enums");
+
+interface IHelpers
 {
-  public static Events = {
-    StockAdd: "stock add",
-    StockUpdate: "stock update",
-    StockDelete: "stock delete",
-    StockIssue: "stock issue",
-    StockAdjust: "stock adjust",
-    GroupUpdate: "stock-group update",
-    GroupDelete: "stock-group delete",
-    Notification: "notification"
+  GetIcon: (name: string) => string;
+  GetColour: (name: string) => string;
+  FormatDate: (d: Date) => string;
+}
+
+module Helpers
+{
+  export class Events
+  {
+    public static StockAdd = "stock add";
+    public static StockUpdate = "stock update";
+    public static StockDelete = "stock delete";
+    public static StockIssue = "stock issue";
+    public static StockAdjust = "stock adjust";
+    public static GroupUpdate = "stock-group update";
+    public static GroupDelete = "stock-group delete";
+    public static Notification = "notification";
   }
 
-  public static GetIcon(name: string): string
+  export function GetIcon(type: Enums.AuditTypes): string
   {
     var icon = "";
 
-    if (name.indexOf("Add") > -1)
-      icon = "plus";
-
-    else if (name.indexOf("Update") > -1)
-      icon = "pencil";
-
-    else if (name.indexOf("Issue") > -1)
-      icon = "gbp";
-
-    else if (name.indexOf("Delete") > -1)
-      icon = "trash-o";
+    switch (type)
+    {
+      case Enums.AuditTypes.StockAdd:
+      case Enums.AuditTypes.StockGroupAdd:
+        icon = "plus";
+        break;
+      case Enums.AuditTypes.StockUpdate:
+      case Enums.AuditTypes.StockGroupUpdate:
+      case Enums.AuditTypes.StockAdjust:
+        icon = "pencil";
+        break;
+      case Enums.AuditTypes.StockRemove:
+      case Enums.AuditTypes.StockGroupRemove:
+        icon = "trash-o";
+        break;
+      case Enums.AuditTypes.StockIssue:
+        icon = "gbp";
+        break;
+      default:
+        icon = "pencil";
+        break;
+    }
 
     return "fa fa-" + icon;
   }
 
-  public static GetColour(name: string): string
+  export function GetColour(name: string): string
   {
     var col = "";
 
@@ -49,7 +70,7 @@ class Helpers
     return col;
   }
 
-  public static FormatDate(d: Date): string
+  export function FormatDate(d: Date): string
   {
     var now = new Date();
 
@@ -80,4 +101,4 @@ class Helpers
   }
 }
 
-module.exports = Helpers;
+export = Helpers;

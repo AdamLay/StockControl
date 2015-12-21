@@ -25,7 +25,7 @@ interface IStockAdjust
 
 interface IAuditEntry<T> extends IModel
 {
-  AuditType: AuditTypes;
+  AuditType: number;
   Title?: string;
   Message: string;
   Timestamp: string;

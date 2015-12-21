@@ -4,7 +4,8 @@ var express = require("express");
 var bodyParser = require("body-parser");
 var http = require('http');
 var app = express();
-var helpers = require("./web/js/Helpers.js");
+//#region Helpers
+var Helpers = require("./web/js/Helpers");
 var groupBy = function (arr, prop, nameProp) {
     var groups = {};
     for (var i = 0; i < arr.length; i++) {
@@ -15,11 +16,17 @@ var groupBy = function (arr, prop, nameProp) {
     }
     return groups;
 };
+//#endregion
+//var auditTypes: AuditTypes = require("./web/js/Enums.AuditTypes.js");
+var Enums = require("./web/js/Enums");
+// Set up view engine
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "jade");
-app.locals.Helpers = helpers;
+app.locals.Helpers = Helpers;
+// Middleware
 app.use(express.static(path.join(__dirname, "web")));
 app.use(bodyParser.urlencoded({ extended: false }));
+//#region Set up routing
 app.get(["/", "/index"], function (req, res) {
     StockControl.StockGet(function (stock) {
         var groups = groupBy(stock, "StockGroupId", "StockGroup");
@@ -32,11 +39,14 @@ app.get(["/", "/index"], function (req, res) {
         });
     });
 });
+//#region Stock
+// GET
 app.get("/stock/new", function (req, res) {
     StockControl.StockGroupGet(function (groups) {
         res.render("stock/new", { success: req.query.success, stockGroups: groups });
     });
 });
+// POST (new)
 app.post("/stock/create", function (req, res) {
     var stockItem = {
         Name: req.body.name.trim(),
@@ -49,13 +59,14 @@ app.post("/stock/create", function (req, res) {
         return;
     }
     StockControl.StockAdd(stockItem, function (result) {
-        Audit.AddLog(AuditTypes.StockAdd, "Added item: " + stockItem.Name, stockItem);
+        Audit.AddLog(Enums.AuditTypes.StockAdd, "Added item: " + stockItem.Name, stockItem);
         StockControl.StockGet(function (result) {
-            io.sockets.emit(helpers.Events.StockAdd, result[0]);
+            io.sockets.emit(Helpers.Events.StockAdd, result[0]);
             res.redirect(303, "/stock/new?success=true");
         }, stockItem.Name);
     });
 });
+// GET
 app.get("/stock/edit/:id?", function (req, res) {
     var id = req.params.id;
     StockControl.StockGet(function (results) {
@@ -73,6 +84,7 @@ app.get("/stock/edit/:id?", function (req, res) {
         }
     }, id ? parseInt(id) : null);
 });
+// PUT (update)
 app.put("/stock/edit", function (req, res) {
     res.setHeader('Content-Type', 'application/json');
     var item = {
@@ -86,26 +98,28 @@ app.put("/stock/edit", function (req, res) {
         Data.Custom(function (db) {
             var query = "UPDATE Stock SET Name = '" + item.Name + "', Quantity = " + item.Quantity + ", Reorder = " + item.Reorder + ", StockGroupId = " + item.StockGroupId + " WHERE Id = " + item.Id;
             db.run(query, function () {
-                Audit.AddLog(AuditTypes.StockUpdate, item.Name + " item Updated.", item, existingItems[0]);
-                io.sockets.emit(helpers.Events.StockUpdate, item);
+                Audit.AddLog(Enums.AuditTypes.StockUpdate, item.Name + " item Updated.", item, existingItems[0]);
+                io.sockets.emit(Helpers.Events.StockUpdate, item);
                 res.send(JSON.stringify({ Success: true }));
             });
         });
     }, item.Id);
 });
+// DELETE /Stock/1
 app.delete("/stock/:id", function (req, res) {
     res.setHeader('Content-Type', 'application/json');
     var id = req.params.id;
     StockControl.StockGet(function (results) {
         if (results.filter(function (m) { return m.Id == id; }).length == 1) {
             Data.Delete("Stock", "Id = " + id, function () {
-                Audit.AddLog(AuditTypes.StockRemove, "Deleted item: " + results[0].Name, null, results[0]);
-                io.sockets.emit(helpers.Events.StockDelete, id);
+                Audit.AddLog(Enums.AuditTypes.StockRemove, "Deleted item: " + results[0].Name, null, results[0]);
+                io.sockets.emit(Helpers.Events.StockDelete, id);
                 res.send(JSON.stringify({ Success: true }));
             });
         }
     });
 });
+// PUT
 app.put("/stock/adjust/:id", function (req, res) {
     res.setHeader('Content-Type', 'application/json');
     var adjust = {
@@ -114,12 +128,13 @@ app.put("/stock/adjust/:id", function (req, res) {
     };
     Data.Custom(function (db) {
         db.run("UPDATE Stock SET Quantity = " + adjust.Quantity + " WHERE Id = " + req.params.id, function () {
-            Audit.AddLog(AuditTypes.StockAdjust, "Adjusted from " + adjust.Original + " to " + adjust.Quantity, adjust.Quantity, adjust.Original);
-            io.emit(helpers.Events.StockAdjust, { Id: req.params.id, Quantity: adjust.Quantity });
+            Audit.AddLog(Enums.AuditTypes.StockAdjust, "Adjusted from " + adjust.Original + " to " + adjust.Quantity, adjust.Quantity, adjust.Original);
+            io.emit(Helpers.Events.StockAdjust, { Id: req.params.id, Quantity: adjust.Quantity });
             res.send(JSON.stringify({ Success: true }));
         });
     });
 });
+// /api GET
 app.get("/api/stock/:id", function (req, res) {
     StockControl.StockGet(function (result) {
         res.setHeader('Content-Type', 'application/json');
@@ -131,6 +146,7 @@ app.get("/api/stock/:id", function (req, res) {
         }
     }, req.params.id);
 });
+// /api GET
 app.get("/api/stock/issue/:id", function (req, res) {
     res.setHeader('Content-Type', 'application/json');
     var id = parseInt(req.params.id);
@@ -144,32 +160,42 @@ app.get("/api/stock/issue/:id", function (req, res) {
             res.send(JSON.stringify({ Success: false, Message: "There are no remaining items of type \"" + item.Name + "\"" }));
             return;
         }
+        // Update in database
         Data.Update("Stock", { Quantity: --item.Quantity }, "Id = " + id, function () {
-            Audit.AddLog(AuditTypes.StockIssue, "1 " + item.Name + " has been issued.", item.Quantity, item.Quantity + 1);
-            io.emit(helpers.Events.StockIssue, item);
+            // Add audit log
+            Audit.AddLog(Enums.AuditTypes.StockIssue, "1 " + item.Name + " has been issued.", item.Quantity, item.Quantity + 1);
+            // Trigger stock issue event
+            io.emit(Helpers.Events.StockIssue, item);
+            // Send response
             res.send(JSON.stringify({ Success: true, Quantity: item.Quantity }));
         });
         if (item.Quantity <= item.Reorder) {
         }
     }, id);
 });
+//#endregion
+//#region Stock Groups
+// GET
 app.get("/stock-groups/new", function (req, res) {
     res.render("stock-groups/new", { success: req.query.success });
 });
+// POST
 app.post("/stock-groups/create", function (req, res) {
     var stockGroup = {
         Name: req.body.name.trim()
     };
     StockControl.StockGroupAdd(stockGroup, function (result) {
-        Audit.AddLog(AuditTypes.StockGroupAdd, "New group: ", stockGroup);
+        Audit.AddLog(Enums.AuditTypes.StockGroupAdd, "New group: ", stockGroup);
         res.redirect(303, "/stock-groups/new?success=true");
     });
 });
+// GET
 app.get("/stock-groups/edit", function (req, res) {
     StockControl.StockGroupGet(function (data) {
         res.render("stock-groups/edit", { groups: data });
     });
 });
+// PUT (update)
 app.put("/stock-groups/edit/:id", function (req, res) {
     res.setHeader('Content-Type', 'application/json');
     var grp = {
@@ -178,12 +204,13 @@ app.put("/stock-groups/edit/:id", function (req, res) {
     };
     StockControl.StockGroupGet(function (existingGroups) {
         Data.Update("StockGroups", { Name: grp.Name }, "Id = " + grp.Id, function () {
-            Audit.AddLog(AuditTypes.StockGroupUpdate, "Updated group: " + grp.Id, grp, existingGroups[0]);
-            io.emit(helpers.Events.GroupUpdate, grp);
+            Audit.AddLog(Enums.AuditTypes.StockGroupUpdate, "Updated group: " + grp.Id, grp, existingGroups[0]);
+            io.emit(Helpers.Events.GroupUpdate, grp);
             res.send(JSON.stringify({ Success: true }));
         });
     }, grp.Id);
 });
+// DELETE
 app.delete("/stock-groups/:id", function (req, res) {
     var id = parseInt(req.params.id);
     res.setHeader('Content-Type', 'application/json');
@@ -195,20 +222,22 @@ app.delete("/stock-groups/:id", function (req, res) {
             }
             StockControl.StockGroupGet(function (existingGroups) {
                 Data.Delete("StockGroups", "Id = " + sqlEscape(id), function () {
-                    Audit.AddLog(AuditTypes.StockGroupRemove, "Removed group: " + id, null, existingGroups[0]);
-                    io.emit(helpers.Events.GroupDelete, id);
+                    Audit.AddLog(Enums.AuditTypes.StockGroupRemove, "Removed group: " + id, null, existingGroups[0]);
+                    io.emit(Helpers.Events.GroupDelete, id);
                     res.send(JSON.stringify({ Success: true, Message: "" }));
                 });
             }, id);
         });
     });
 });
+// /api GET
 app.get("/api/stock-groups", function (req, res) {
     StockControl.StockGroupGet(function (result) {
         res.setHeader('Content-Type', 'application/json');
         res.send(JSON.stringify({ Success: result.length > 0, Results: result }));
     });
 });
+// /api GET
 app.get("/api/stock-groups/:id", function (req, res) {
     StockControl.StockGroupGet(function (result) {
         res.setHeader('Content-Type', 'application/json');
@@ -220,20 +249,34 @@ app.get("/api/stock-groups/:id", function (req, res) {
         }
     }, req.params.id);
 });
+//#endregion
+//#region Audit
+// GET
 app.get("/audit(/index)?", function (req, res) {
     Audit.GetLogEntries(null, function (results) {
+        // Sort by date descending
         results = Audit.SortDesc(results);
+        // Return first 50 results
         res.render("audit/index", { audit: results.slice(0, 50) });
     });
 });
+//#endregion
+//#endregion
+//#region Server
+// Create node HTTP Server object
 var server = http.createServer(app);
+// Run HTTP Server
 server.listen(port, function () {
     console.log("Server listening on port " + port);
 });
+//#endregion
+//#region Socket.io
 var io = require('socket.io')(server);
 io.on('connection', function (socket) {
     console.log('User connected', socket.handshake.address);
 });
+//#endregion
+//#region Sqlite3
 var sqlEscape = function (str) {
     return (str + "").replace(/'/g, "''");
 };
@@ -243,8 +286,11 @@ var Data = (function () {
     }
     Data.Init = function () {
         var db = new sqlite3.Database('stockcontrol.sqlite3');
+        // Create Stock Table
         db.run("CREATE TABLE if not exists Stock (Id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT NOT NULL, Quantity INTEGER NOT NULL, Reorder INTEGER, StockGroupId INTEGER);");
+        // Create Stock Groups Table
         db.run("CREATE TABLE if not exists StockGroups (Id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT NOT NULL);");
+        // Create Stock Groups Table
         db.run("CREATE TABLE if not exists Audit (Id INTEGER PRIMARY KEY AUTOINCREMENT, AuditType INTEGER NOT NULL, Message TEXT NOT NULL, Timestamp TEXT NOT NULL, OriginalData TEXT, NewData TEXT);");
         Data._db = db;
     };
@@ -258,6 +304,7 @@ var Data = (function () {
             callback(rows.slice(0, count));
         });
     };
+    // Will work provided the object matches table structure
     Data.Insert = function (table, data) {
         if (data.length < 1)
             return;
@@ -301,6 +348,7 @@ var Data = (function () {
     return Data;
 })();
 Data.Init();
+//#endregion
 var StockControl = (function () {
     function StockControl() {
     }
@@ -327,23 +375,13 @@ var StockControl = (function () {
     };
     return StockControl;
 })();
-var AuditTypes;
-(function (AuditTypes) {
-    AuditTypes[AuditTypes["StockIssue"] = 0] = "StockIssue";
-    AuditTypes[AuditTypes["StockAdd"] = 1] = "StockAdd";
-    AuditTypes[AuditTypes["StockUpdate"] = 2] = "StockUpdate";
-    AuditTypes[AuditTypes["StockAdjust"] = 3] = "StockAdjust";
-    AuditTypes[AuditTypes["StockRemove"] = 4] = "StockRemove";
-    AuditTypes[AuditTypes["StockGroupAdd"] = 5] = "StockGroupAdd";
-    AuditTypes[AuditTypes["StockGroupUpdate"] = 6] = "StockGroupUpdate";
-    AuditTypes[AuditTypes["StockGroupRemove"] = 7] = "StockGroupRemove";
-})(AuditTypes || (AuditTypes = {}));
 var Audit = (function () {
     function Audit() {
     }
     Audit.AddLog = function (t, entry, newData, originalData) {
         var audit = {
             AuditType: t,
+            //Title: title,
             Message: entry,
             Timestamp: new Date().toString()
         };
@@ -355,7 +393,7 @@ var Audit = (function () {
         Data.Custom(function (db) {
             db.get("SELECT last_insert_rowid() as Id", function (err, row) {
                 audit.Id = row.Id;
-                io.emit(helpers.Events.Notification, audit);
+                io.emit(Helpers.Events.Notification, audit);
             });
         });
     };

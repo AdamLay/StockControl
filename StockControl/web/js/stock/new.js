@@ -2,6 +2,7 @@ $("#txtName").on("keyup", function () {
     var $this = $(this);
     new Throttler("NameKeyUp", 800, function () {
         Api.Get("/api/stock/" + encodeURIComponent($this.val()), function (res) {
+            // Error if stock item found
             if (res.Success) {
                 $("#msgExisting").fadeIn(100);
                 Validation.Error($this);

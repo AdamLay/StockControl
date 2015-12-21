@@ -1,4 +1,7 @@
-﻿//#region Prototypes
+//import Helpers = require("./Helpers");
+declare var Helpers: any;
+
+//#region Prototypes
 
 interface Array<T>
 {
@@ -107,6 +110,8 @@ $(document).ready(function ()
   // Hide any success notifications after 3 seconds
   setTimeout(function () { $("#messageSuccess").slideUp(200); }, 3000);
 });
+
+declare var io: any;
 
 class SocketManager
 {

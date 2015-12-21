@@ -4,7 +4,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{51dfb5a7-0f28-457d-96a2-0e65a2ca3ea0}</ProjectGuid>
-    <ProjectView>ProjectFiles</ProjectView>
+    <ProjectView>ShowAllFiles</ProjectView>
     <StartupFile>app.ts</StartupFile>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -32,6 +32,7 @@
     <Content Include="views\partials\reorders.jade" />
     <Content Include="views\stock\editList.jade" />
     <Content Include="views\stock\edit.jade" />
+    <Content Include="views\stock\stockItemForm.jade" />
     <Content Include="web\styles\main.css" />
     <Content Include="web\styles\main.min.css" />
     <Content Include="web\styles\timeline.css" />
@@ -46,12 +47,12 @@
     <Content Include="views\partials\stockList.jade" />
     <Content Include="views\stock-groups\edit.jade" />
     <Content Include="views\stock-groups\new.jade" />
-    <Content Include="views\stock\index.jade" />
     <Content Include="views\stock\new.jade" />
     <TypeScriptCompile Include="d.ts\serve-static.d.ts" />
     <TypeScriptCompile Include="StockControl.d.ts" />
     <TypeScriptCompile Include="web\js\audit\index.ts" />
     <TypeScriptCompile Include="web\js\components\notifications.ts" />
+    <TypeScriptCompile Include="web\js\Enums.ts" />
     <TypeScriptCompile Include="web\js\Helpers.ts" />
     <TypeScriptCompile Include="web\js\main.ts" />
     <Content Include="web\styles\main.less" />

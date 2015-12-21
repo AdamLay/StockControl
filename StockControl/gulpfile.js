@@ -25,7 +25,7 @@ gulp.task('compile-jade', function () {
 gulp.task('default', ['compile-jade'], function () {
 
     return gulp
-      .src(['web/js/main.js', 'web/js/Helpers.js', 'web/js/templates.js'])
+      .src(['web/js/main.js', 'web/js/Enums.js', 'web/js/Helpers.js', 'web/js/templates.js'])
       .pipe(concat('app.js'))
       .pipe(gulp.dest('web/js/'));
 });
