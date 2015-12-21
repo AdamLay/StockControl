@@ -3,16 +3,17 @@
 block content
 
     .row
-        .col-md-4.col-center
+        .col-md-4.col-sm-6.col-center
             form.form-signin
                 h2.form-signin-heading Register Account
                 .form-group
-                    label.sr-only(for="email") Username
+                    label.control-label(for="email") Username
                     input.form-control(type="text", id="email", placeholder="Username", required, autofocus)
                 .form-group
-                    label.sr-only(for="password") Password
-                    input.form-control(type="password", id="password1", placeholder="Password", required)
-                    label.sr-only(for="password") Confirm Password
-                    input.form-control(type="passwordConfirm", id="password2", placeholder="Password", required)
+                    label.control-label(for="password") Password
+                    input.form-control(type="password", name="password", id="password1", placeholder="Password", required)
+                .form-group
+                    label.control-label(for="password") Confirm Password
+                    input.form-control(type="password", name="passwordConfirm" id="password2", placeholder="Password", required)
                 .form-group
                     input#btnSubmit.btn.btn-primary(type="submit", value="Register")
