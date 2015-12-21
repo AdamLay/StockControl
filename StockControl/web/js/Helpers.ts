@@ -1,4 +1,4 @@
-﻿class Helpers
+class Helpers
 {
   public static Events = {
     StockAdd: "stock add",

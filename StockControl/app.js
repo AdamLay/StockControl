@@ -49,7 +49,7 @@ app.post("/stock/create", function (req, res) {
         return;
     }
     StockControl.StockAdd(stockItem, function (result) {
-        Audit.AddLog(Audit.Types.StockAdd, "Added item: " + stockItem.Name, stockItem);
+        Audit.AddLog(AuditTypes.StockAdd, "Added item: " + stockItem.Name, stockItem);
         StockControl.StockGet(function (result) {
             io.sockets.emit(helpers.Events.StockAdd, result[0]);
             res.redirect(303, "/stock/new?success=true");
@@ -86,7 +86,7 @@ app.put("/stock/edit", function (req, res) {
         Data.Custom(function (db) {
             var query = "UPDATE Stock SET Name = '" + item.Name + "', Quantity = " + item.Quantity + ", Reorder = " + item.Reorder + ", StockGroupId = " + item.StockGroupId + " WHERE Id = " + item.Id;
             db.run(query, function () {
-                Audit.AddLog(Audit.Types.StockUpdate, item.Name + " item Updated.", item, existingItems[0]);
+                Audit.AddLog(AuditTypes.StockUpdate, item.Name + " item Updated.", item, existingItems[0]);
                 io.sockets.emit(helpers.Events.StockUpdate, item);
                 res.send(JSON.stringify({ Success: true }));
             });
@@ -99,7 +99,7 @@ app.delete("/stock/:id", function (req, res) {
     StockControl.StockGet(function (results) {
         if (results.filter(function (m) { return m.Id == id; }).length == 1) {
             Data.Delete("Stock", "Id = " + id, function () {
-                Audit.AddLog(Audit.Types.StockRemove, "Deleted item: " + results[0].Name, null, results[0]);
+                Audit.AddLog(AuditTypes.StockRemove, "Deleted item: " + results[0].Name, null, results[0]);
                 io.sockets.emit(helpers.Events.StockDelete, id);
                 res.send(JSON.stringify({ Success: true }));
             });
@@ -114,7 +114,7 @@ app.put("/stock/adjust/:id", function (req, res) {
     };
     Data.Custom(function (db) {
         db.run("UPDATE Stock SET Quantity = " + adjust.Quantity + " WHERE Id = " + req.params.id, function () {
-            Audit.AddLog(Audit.Types.StockAdjust, "Adjusted from " + adjust.Original + " to " + adjust.Quantity, adjust.Quantity, adjust.Original);
+            Audit.AddLog(AuditTypes.StockAdjust, "Adjusted from " + adjust.Original + " to " + adjust.Quantity, adjust.Quantity, adjust.Original);
             io.emit(helpers.Events.StockAdjust, { Id: req.params.id, Quantity: adjust.Quantity });
             res.send(JSON.stringify({ Success: true }));
         });
@@ -145,7 +145,7 @@ app.get("/api/stock/issue/:id", function (req, res) {
             return;
         }
         Data.Update("Stock", { Quantity: --item.Quantity }, "Id = " + id, function () {
-            Audit.AddLog(Audit.Types.StockIssue, "1 " + item.Name + " has been issued.", item.Quantity, item.Quantity + 1);
+            Audit.AddLog(AuditTypes.StockIssue, "1 " + item.Name + " has been issued.", item.Quantity, item.Quantity + 1);
             io.emit(helpers.Events.StockIssue, item);
             res.send(JSON.stringify({ Success: true, Quantity: item.Quantity }));
         });
@@ -161,7 +161,7 @@ app.post("/stock-groups/create", function (req, res) {
         Name: req.body.name.trim()
     };
     StockControl.StockGroupAdd(stockGroup, function (result) {
-        Audit.AddLog(Audit.Types.StockGroupAdd, "New group: ", stockGroup);
+        Audit.AddLog(AuditTypes.StockGroupAdd, "New group: ", stockGroup);
         res.redirect(303, "/stock-groups/new?success=true");
     });
 });
@@ -178,7 +178,7 @@ app.put("/stock-groups/edit/:id", function (req, res) {
     };
     StockControl.StockGroupGet(function (existingGroups) {
         Data.Update("StockGroups", { Name: grp.Name }, "Id = " + grp.Id, function () {
-            Audit.AddLog(Audit.Types.StockGroupUpdate, "Updated group: " + grp.Id, grp, existingGroups[0]);
+            Audit.AddLog(AuditTypes.StockGroupUpdate, "Updated group: " + grp.Id, grp, existingGroups[0]);
             io.emit(helpers.Events.GroupUpdate, grp);
             res.send(JSON.stringify({ Success: true }));
         });
@@ -195,7 +195,7 @@ app.delete("/stock-groups/:id", function (req, res) {
             }
             StockControl.StockGroupGet(function (existingGroups) {
                 Data.Delete("StockGroups", "Id = " + sqlEscape(id), function () {
-                    Audit.AddLog(Audit.Types.StockGroupRemove, "Removed group: " + id, null, existingGroups[0]);
+                    Audit.AddLog(AuditTypes.StockGroupRemove, "Removed group: " + id, null, existingGroups[0]);
                     io.emit(helpers.Events.GroupDelete, id);
                     res.send(JSON.stringify({ Success: true, Message: "" }));
                 });
@@ -245,7 +245,7 @@ var Data = (function () {
         var db = new sqlite3.Database('stockcontrol.sqlite3');
         db.run("CREATE TABLE if not exists Stock (Id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT NOT NULL, Quantity INTEGER NOT NULL, Reorder INTEGER, StockGroupId INTEGER);");
         db.run("CREATE TABLE if not exists StockGroups (Id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT NOT NULL);");
-        db.run("CREATE TABLE if not exists Audit (Id INTEGER PRIMARY KEY AUTOINCREMENT, Title TEXT NOT NULL, Message TEXT NOT NULL, Timestamp TEXT NOT NULL, OriginalData TEXT, NewData TEXT);");
+        db.run("CREATE TABLE if not exists Audit (Id INTEGER PRIMARY KEY AUTOINCREMENT, AuditType INTEGER NOT NULL, Message TEXT NOT NULL, Timestamp TEXT NOT NULL, OriginalData TEXT, NewData TEXT);");
         Data._db = db;
     };
     Data.Get = function (table, query, callback) {
@@ -327,12 +327,23 @@ var StockControl = (function () {
     };
     return StockControl;
 })();
+var AuditTypes;
+(function (AuditTypes) {
+    AuditTypes[AuditTypes["StockIssue"] = 0] = "StockIssue";
+    AuditTypes[AuditTypes["StockAdd"] = 1] = "StockAdd";
+    AuditTypes[AuditTypes["StockUpdate"] = 2] = "StockUpdate";
+    AuditTypes[AuditTypes["StockAdjust"] = 3] = "StockAdjust";
+    AuditTypes[AuditTypes["StockRemove"] = 4] = "StockRemove";
+    AuditTypes[AuditTypes["StockGroupAdd"] = 5] = "StockGroupAdd";
+    AuditTypes[AuditTypes["StockGroupUpdate"] = 6] = "StockGroupUpdate";
+    AuditTypes[AuditTypes["StockGroupRemove"] = 7] = "StockGroupRemove";
+})(AuditTypes || (AuditTypes = {}));
 var Audit = (function () {
     function Audit() {
     }
-    Audit.AddLog = function (title, entry, newData, originalData) {
+    Audit.AddLog = function (t, entry, newData, originalData) {
         var audit = {
-            Title: title,
+            AuditType: t,
             Message: entry,
             Timestamp: new Date().toString()
         };

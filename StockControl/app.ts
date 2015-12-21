@@ -89,7 +89,7 @@ app.post("/stock/create", function (req, res)
 
   StockControl.StockAdd(stockItem, (result) =>
   {
-    Audit.AddLog<IStockItem>(Audit.Types.StockAdd, "Added item: " + stockItem.Name, stockItem);
+    Audit.AddLog<IStockItem>(AuditTypes.StockAdd, "Added item: " + stockItem.Name, stockItem);
 
     StockControl.StockGet(function (result)
     {
@@ -148,7 +148,7 @@ app.put("/stock/edit", function (req, res)
 
       db.run(query, function ()
       {
-        Audit.AddLog<IStockItem>(Audit.Types.StockUpdate, item.Name + " item Updated.", item, existingItems[0]);
+        Audit.AddLog<IStockItem>(AuditTypes.StockUpdate, item.Name + " item Updated.", item, existingItems[0]);
 
         io.sockets.emit(helpers.Events.StockUpdate, item);
 
@@ -171,7 +171,7 @@ app.delete("/stock/:id", function (req, res)
     {
       Data.Delete("Stock", "Id = " + id, function ()
       {
-        Audit.AddLog<IStockItem>(Audit.Types.StockRemove, "Deleted item: " + results[0].Name, null, results[0]);
+        Audit.AddLog<IStockItem>(AuditTypes.StockRemove, "Deleted item: " + results[0].Name, null, results[0]);
 
         io.sockets.emit(helpers.Events.StockDelete, id);
 
@@ -195,7 +195,7 @@ app.put("/stock/adjust/:id", function (req, res)
   {
     db.run("UPDATE Stock SET Quantity = " + adjust.Quantity + " WHERE Id = " + req.params.id, function ()
     {
-      Audit.AddLog<number>(Audit.Types.StockAdjust, "Adjusted from " + adjust.Original + " to " + adjust.Quantity, adjust.Quantity, adjust.Original)
+      Audit.AddLog<number>(AuditTypes.StockAdjust, "Adjusted from " + adjust.Original + " to " + adjust.Quantity, adjust.Quantity, adjust.Original)
 
       io.emit(helpers.Events.StockAdjust, { Id: req.params.id, Quantity: adjust.Quantity });
 
@@ -249,7 +249,7 @@ app.get("/api/stock/issue/:id", function (req, res)
     Data.Update("Stock", { Quantity: --item.Quantity }, "Id = " + id, function ()
     {
       // Add audit log
-      Audit.AddLog<number>(Audit.Types.StockIssue, "1 " + item.Name + " has been issued.", item.Quantity, item.Quantity + 1);
+      Audit.AddLog<number>(AuditTypes.StockIssue, "1 " + item.Name + " has been issued.", item.Quantity, item.Quantity + 1);
 
       // Trigger stock issue event
       io.emit(helpers.Events.StockIssue, item);
@@ -287,7 +287,7 @@ app.post("/stock-groups/create", function (req, res)
 
   StockControl.StockGroupAdd(stockGroup, (result) =>
   {
-    Audit.AddLog<IStockGroup>(Audit.Types.StockGroupAdd, "New group: ", stockGroup);
+    Audit.AddLog<IStockGroup>(AuditTypes.StockGroupAdd, "New group: ", stockGroup);
 
     res.redirect(303, "/stock-groups/new?success=true");
   });
@@ -316,7 +316,7 @@ app.put("/stock-groups/edit/:id", function (req, res)
   {
     Data.Update("StockGroups", { Name: grp.Name }, "Id = " + grp.Id, function ()
     {
-      Audit.AddLog<IStockGroup>(Audit.Types.StockGroupUpdate, "Updated group: " + grp.Id, grp, existingGroups[0]);
+      Audit.AddLog<IStockGroup>(AuditTypes.StockGroupUpdate, "Updated group: " + grp.Id, grp, existingGroups[0]);
 
       io.emit(helpers.Events.GroupUpdate, grp);
 
@@ -347,7 +347,7 @@ app.delete("/stock-groups/:id", function (req, res)
       {
         Data.Delete("StockGroups", "Id = " + sqlEscape(id), function ()
         {
-          Audit.AddLog<IStockGroup>(Audit.Types.StockGroupRemove, "Removed group: " + id, null, existingGroups[0]);
+          Audit.AddLog<IStockGroup>(AuditTypes.StockGroupRemove, "Removed group: " + id, null, existingGroups[0]);
 
           io.emit(helpers.Events.GroupDelete, id);
 
@@ -457,7 +457,7 @@ class Data
     db.run("CREATE TABLE if not exists StockGroups (Id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT NOT NULL);");
 
     // Create Stock Groups Table
-    db.run("CREATE TABLE if not exists Audit (Id INTEGER PRIMARY KEY AUTOINCREMENT, Title TEXT NOT NULL, Message TEXT NOT NULL, Timestamp TEXT NOT NULL, OriginalData TEXT, NewData TEXT);");
+    db.run("CREATE TABLE if not exists Audit (Id INTEGER PRIMARY KEY AUTOINCREMENT, AuditType INTEGER NOT NULL, Message TEXT NOT NULL, Timestamp TEXT NOT NULL, OriginalData TEXT, NewData TEXT);");
 
     Data._db = db;
   }
@@ -591,9 +591,21 @@ class StockControl
   }
 }
 
+enum AuditTypes
+{
+  StockIssue = 0,
+  StockAdd = 1,
+  StockUpdate = 2,
+  StockAdjust = 3,
+  StockRemove = 4,
+  StockGroupAdd = 5,
+  StockGroupUpdate = 6,
+  StockGroupRemove = 7
+}
+
 class Audit
 {
-  public static Types = {
+  private static Types = {
     StockIssue: "Stock Issue",
     StockAdd: "Stock Add",
     StockUpdate: "Stock Update",
@@ -604,10 +616,11 @@ class Audit
     StockGroupRemove: "Stock Group Delete"
   }
 
-  public static AddLog<T>(title: string, entry: string, newData: T, originalData?: T): void
+  public static AddLog<T>(t: AuditTypes, entry: string, newData: T, originalData?: T): void
   {
     var audit: IAuditEntry<T> = {
-      Title: title,
+      AuditType: t,
+      //Title: title,
       Message: entry,
       Timestamp: new Date().toString()
     };
