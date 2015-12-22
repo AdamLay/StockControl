@@ -35,7 +35,7 @@ gulp.task('compile-less', function () {
 gulp.task('common-js', function () {
 
   return gulp
-    .src('./common/**/*.js')
+    .src(['./common/**/*.js', '!./common/shared.js'])
     .pipe(concat('shared.js'))
     .pipe(gulp.dest('./common/'));
 });
