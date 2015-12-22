@@ -58,19 +58,85 @@ var Helpers;
         return "fa fa-" + icon;
     }
     Helpers.GetIcon = GetIcon;
-    function GetColour(name) {
+    function GetColour(type) {
         var col = "";
-        if (name.indexOf("Add") > -1)
-            col = "success";
-        else if (name.indexOf("Update") > -1)
-            col = "default";
-        else if (name.indexOf("Issue") > -1)
-            col = "info";
-        else if (name.indexOf("Delete") > -1)
-            col = "danger";
+        switch (type) {
+            case Enums.AuditTypes.StockAdd:
+            case Enums.AuditTypes.StockGroupAdd:
+                col = "Success";
+                break;
+            case Enums.AuditTypes.StockUpdate:
+            case Enums.AuditTypes.StockGroupUpdate:
+            case Enums.AuditTypes.StockAdjust:
+                col = "default";
+                break;
+            case Enums.AuditTypes.StockRemove:
+            case Enums.AuditTypes.StockGroupRemove:
+                col = "danger";
+                break;
+            case Enums.AuditTypes.StockIssue:
+                col = "info";
+                break;
+            default:
+                col = "default";
+                break;
+        }
         return col;
     }
     Helpers.GetColour = GetColour;
+    function GetAuditInfo(entry) {
+        switch (entry.AuditType) {
+            case Enums.AuditTypes.StockAdd:
+                return {
+                    Title: "Stock Item Added",
+                    Colour: "success",
+                    Icon: "plus"
+                };
+            case Enums.AuditTypes.StockGroupAdd:
+                return {
+                    Title: "Stock Group Added",
+                    Colour: "success",
+                    Icon: "plus"
+                };
+            case Enums.AuditTypes.StockUpdate:
+                return {
+                    Title: "Stock Item Updated",
+                    Colour: "default",
+                    Icon: "pencil"
+                };
+            case Enums.AuditTypes.StockGroupUpdate:
+                return {
+                    Title: "Stock Group Updated",
+                    Colour: "default",
+                    Icon: "pencil"
+                };
+            case Enums.AuditTypes.StockAdjust:
+                return {
+                    Title: "Stock Quantity Adjusted",
+                    Colour: "default",
+                    Icon: "pencil"
+                };
+            case Enums.AuditTypes.StockRemove:
+                return {
+                    Title: "Stock Item Removed",
+                    Colour: "danger",
+                    Icon: "trash-o"
+                };
+            case Enums.AuditTypes.StockGroupRemove:
+                return {
+                    Title: "Stock Group Removed",
+                    Colour: "danger",
+                    Icon: "trash-o"
+                };
+            case Enums.AuditTypes.StockIssue:
+                return {
+                    Title: "Stock Issued",
+                    Colour: "info",
+                    Icon: "gbp"
+                };
+        }
+    }
+    Helpers.GetAuditInfo = GetAuditInfo;
     function FormatDate(d) {
         var now = new Date();
         var str = "";
@@ -360,7 +426,7 @@ var buf = [];
 var jade_mixins = {};
 var jade_interp;
 ;var locals_for_with = (locals || {});(function (Date, Helpers, index, log) {
-buf.push("<li" + (jade.cls(["" + (index % 2 == 1 ? 'timeline-inverted' : '') + ""], [true])) + "><div" + (jade.cls(['timeline-badge',"" + (Helpers.GetColour(log.Title)) + ""], [null,true])) + "><i" + (jade.cls(['fa',"" + (Helpers.GetIcon(log.Title)) + ""], [null,true])) + "></i></div><div" + (jade.attr("id", "" + (log.Id) + "", true, false)) + " class=\"timeline-panel\"><div class=\"timeline-heading\"><h4 class=\"timeline-title\">" + (jade.escape((jade_interp = log.Title) == null ? '' : jade_interp)) + "</h4><p><small class=\"text-muted\">" + (jade.escape((jade_interp = new Date(log.Timestamp).toUTCString()) == null ? '' : jade_interp)) + "</small></p></div><div class=\"timeline-body\"><p>" + (jade.escape((jade_interp = log.Message) == null ? '' : jade_interp)) + "</p></div></div></li>");}.call(this,"Date" in locals_for_with?locals_for_with.Date:typeof Date!=="undefined"?Date:undefined,"Helpers" in locals_for_with?locals_for_with.Helpers:typeof Helpers!=="undefined"?Helpers:undefined,"index" in locals_for_with?locals_for_with.index:typeof index!=="undefined"?index:undefined,"log" in locals_for_with?locals_for_with.log:typeof log!=="undefined"?log:undefined));;return buf.join("");
+buf.push("<li" + (jade.cls(["" + (index % 2 == 1 ? 'timeline-inverted' : '') + ""], [true])) + "><div" + (jade.cls(['timeline-badge',(Helpers.GetAuditInfo(log).Colour)], [null,true])) + "><i" + (jade.cls(['fa',"fa fa-" + (Helpers.GetAuditInfo(log).Icon) + ""], [null,true])) + "></i></div><div" + (jade.attr("id", "" + (log.Id) + "", true, false)) + " class=\"timeline-panel\"><div class=\"timeline-heading\"><h4 class=\"timeline-title\">" + (jade.escape((jade_interp = Helpers.GetAuditInfo(log).Title) == null ? '' : jade_interp)) + "</h4><p><small class=\"text-muted\">" + (jade.escape((jade_interp = new Date(log.Timestamp).toUTCString()) == null ? '' : jade_interp)) + "</small></p></div><div class=\"timeline-body\"><p>" + (jade.escape((jade_interp = log.Message) == null ? '' : jade_interp)) + "</p></div></div></li>");}.call(this,"Date" in locals_for_with?locals_for_with.Date:typeof Date!=="undefined"?Date:undefined,"Helpers" in locals_for_with?locals_for_with.Helpers:typeof Helpers!=="undefined"?Helpers:undefined,"index" in locals_for_with?locals_for_with.index:typeof index!=="undefined"?index:undefined,"log" in locals_for_with?locals_for_with.log:typeof log!=="undefined"?log:undefined));;return buf.join("");
 };
 this["Templates"]["modalDialog"] = function template(locals) {
 var buf = [];
@@ -374,7 +440,7 @@ var buf = [];
 var jade_mixins = {};
 var jade_interp;
 ;var locals_for_with = (locals || {});(function (Date, Helpers, item) {
-buf.push("<a" + (jade.attr("href", "/audit?id=" + (item.Id) + "", true, false)) + " style=\"display:block;\" class=\"list-group-item\"><i" + (jade.cls(["" + (Helpers.GetIcon(item.Title)) + ""], [true])) + "></i> " + (jade.escape((jade_interp = item.Title) == null ? '' : jade_interp)) + "<span" + (jade.attr("data-time", "" + (new Date(item.Timestamp).getTime()) + "", true, false)) + " class=\"pull-right text-muted small\">" + (jade.escape((jade_interp = Helpers.FormatDate(new Date(item.Timestamp))) == null ? '' : jade_interp)) + "</span></a>");}.call(this,"Date" in locals_for_with?locals_for_with.Date:typeof Date!=="undefined"?Date:undefined,"Helpers" in locals_for_with?locals_for_with.Helpers:typeof Helpers!=="undefined"?Helpers:undefined,"item" in locals_for_with?locals_for_with.item:typeof item!=="undefined"?item:undefined));;return buf.join("");
+buf.push("<a" + (jade.attr("href", "/audit?id=" + (item.Id) + "", true, false)) + " style=\"display:block;\" class=\"list-group-item\"><i" + (jade.cls(["fa fa-" + (Helpers.GetAuditInfo(item).Icon) + ""], [true])) + "></i> " + (jade.escape((jade_interp = Helpers.GetAuditInfo(item).Title) == null ? '' : jade_interp)) + "<span" + (jade.attr("data-time", "" + (new Date(item.Timestamp).getTime()) + "", true, false)) + " class=\"pull-right text-muted small\">" + (jade.escape((jade_interp = Helpers.FormatDate(new Date(item.Timestamp))) == null ? '' : jade_interp)) + "</span></a>");}.call(this,"Date" in locals_for_with?locals_for_with.Date:typeof Date!=="undefined"?Date:undefined,"Helpers" in locals_for_with?locals_for_with.Helpers:typeof Helpers!=="undefined"?Helpers:undefined,"item" in locals_for_with?locals_for_with.item:typeof item!=="undefined"?item:undefined));;return buf.join("");
 };
 this["Templates"]["stockGroup"] = function template(locals) {
 var buf = [];

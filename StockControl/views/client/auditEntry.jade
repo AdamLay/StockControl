@@ -1,9 +1,9 @@
 li(class="#{index % 2 == 1 ? 'timeline-inverted' : ''}")
-    .timeline-badge(class="#{Helpers.GetColour(log.Title)}")
-        i.fa(class="#{Helpers.GetIcon(log.Title)}")
+    .timeline-badge(class=(Helpers.GetAuditInfo(log).Colour))
+        i.fa(class="fa fa-#{Helpers.GetAuditInfo(log).Icon}")
     .timeline-panel(id="#{log.Id}")
         .timeline-heading
-            h4.timeline-title #{log.Title}
+            h4.timeline-title #{Helpers.GetAuditInfo(log).Title}
             p
                 small.text-muted #{new Date(log.Timestamp).toUTCString()}
         .timeline-body

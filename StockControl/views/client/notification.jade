@@ -1,4 +1,4 @@
 a.list-group-item(href="/audit?id=#{item.Id}", style="display:block;")
-    i(class="#{Helpers.GetIcon(item.Title)}")
-    |  #{item.Title}
+    i(class="fa fa-#{Helpers.GetAuditInfo(item).Icon}")
+    |  #{Helpers.GetAuditInfo(item).Title}
     span.pull-right.text-muted.small(data-time="#{new Date(item.Timestamp).getTime()}") #{Helpers.FormatDate(new Date(item.Timestamp))}

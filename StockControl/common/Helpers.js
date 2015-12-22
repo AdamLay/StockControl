@@ -40,19 +40,85 @@ var Helpers;
         return "fa fa-" + icon;
     }
     Helpers.GetIcon = GetIcon;
-    function GetColour(name) {
+    function GetColour(type) {
         var col = "";
-        if (name.indexOf("Add") > -1)
-            col = "success";
-        else if (name.indexOf("Update") > -1)
-            col = "default";
-        else if (name.indexOf("Issue") > -1)
-            col = "info";
-        else if (name.indexOf("Delete") > -1)
-            col = "danger";
+        switch (type) {
+            case Enums.AuditTypes.StockAdd:
+            case Enums.AuditTypes.StockGroupAdd:
+                col = "Success";
+                break;
+            case Enums.AuditTypes.StockUpdate:
+            case Enums.AuditTypes.StockGroupUpdate:
+            case Enums.AuditTypes.StockAdjust:
+                col = "default";
+                break;
+            case Enums.AuditTypes.StockRemove:
+            case Enums.AuditTypes.StockGroupRemove:
+                col = "danger";
+                break;
+            case Enums.AuditTypes.StockIssue:
+                col = "info";
+                break;
+            default:
+                col = "default";
+                break;
+        }
         return col;
     }
     Helpers.GetColour = GetColour;
+    function GetAuditInfo(entry) {
+        switch (entry.AuditType) {
+            case Enums.AuditTypes.StockAdd:
+                return {
+                    Title: "Stock Item Added",
+                    Colour: "success",
+                    Icon: "plus"
+                };
+            case Enums.AuditTypes.StockGroupAdd:
+                return {
+                    Title: "Stock Group Added",
+                    Colour: "success",
+                    Icon: "plus"
+                };
+            case Enums.AuditTypes.StockUpdate:
+                return {
+                    Title: "Stock Item Updated",
+                    Colour: "default",
+                    Icon: "pencil"
+                };
+            case Enums.AuditTypes.StockGroupUpdate:
+                return {
+                    Title: "Stock Group Updated",
+                    Colour: "default",
+                    Icon: "pencil"
+                };
+            case Enums.AuditTypes.StockAdjust:
+                return {
+                    Title: "Stock Quantity Adjusted",
+                    Colour: "default",
+                    Icon: "pencil"
+                };
+            case Enums.AuditTypes.StockRemove:
+                return {
+                    Title: "Stock Item Removed",
+                    Colour: "danger",
+                    Icon: "trash-o"
+                };
+            case Enums.AuditTypes.StockGroupRemove:
+                return {
+                    Title: "Stock Group Removed",
+                    Colour: "danger",
+                    Icon: "trash-o"
+                };
+            case Enums.AuditTypes.StockIssue:
+                return {
+                    Title: "Stock Issued",
+                    Colour: "info",
+                    Icon: "gbp"
+                };
+        }
+    }
+    Helpers.GetAuditInfo = GetAuditInfo;
     function FormatDate(d) {
         var now = new Date();
         var str = "";
