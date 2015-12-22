@@ -9,14 +9,7 @@ var uuid = require("uuid");
 
 var app = express();
 
-<<<<<<< HEAD:StockControl/server.ts
 //#region Helpers
-=======
-//#region helpers
-
-var helpers = require("./web/js/Helpers.js");
-var errors: ErrorCodes = helpers.ErrorCodes;
->>>>>>> ea91d2c6072d52bb72aacc35d840cf7ee1f348ae:StockControl/app.ts
 
 var groupBy = function (arr, prop, nameProp)
 {
@@ -151,11 +144,8 @@ app.post("/register", function (req, res)
 
   if (pwd1 != pwd2)
   {
-<<<<<<< HEAD:StockControl/server.ts
-    res.redirect("/register?success=false&err=" + Helpers.ErrorCodes.PasswordsDontMatch);
-=======
-    res.redirect("/register?success=false&err=" + helpers.ErrorCodes.PasswordsDontMatch);
->>>>>>> ea91d2c6072d52bb72aacc35d840cf7ee1f348ae:StockControl/app.ts
+    res.redirect("/register?success=false&err=" + Enums.ErrorCodes.PasswordsDontMatch);
+
     return;
   }
 
@@ -170,11 +160,7 @@ app.post("/register", function (req, res)
     }
     else
     {
-<<<<<<< HEAD:StockControl/server.ts
-      res.redirect("/register?success=false&err=" + Helpers.ErrorCodes.UserExists);
-=======
-      res.redirect("/register?success=false&err=" + helpers.ErrorCodes.UserExists);
->>>>>>> ea91d2c6072d52bb72aacc35d840cf7ee1f348ae:StockControl/app.ts
+      res.redirect("/register?success=false&err=" + Enums.ErrorCodes.UserExists);
     }
   });
 });
@@ -765,11 +751,7 @@ class Audit
         {
           audit.Id = row.Id;
 
-<<<<<<< HEAD:StockControl/server.ts
           io.emit(Helpers.Events.Notification, audit);
-=======
-          io.emit(helpers.Events.Notification, audit);
->>>>>>> ea91d2c6072d52bb72aacc35d840cf7ee1f348ae:StockControl/app.ts
         });
       });
     });
@@ -806,11 +788,7 @@ class Authentication
         callback(false);
         return;
       }
-<<<<<<< HEAD:StockControl/server.ts
 
-=======
-      
->>>>>>> ea91d2c6072d52bb72aacc35d840cf7ee1f348ae:StockControl/app.ts
       bcrypt.hash(pwd, 10, function (err, hash)
       {
         Data.Insert("Users", [{ Username: username, Password: hash }], function ()
@@ -862,8 +840,4 @@ class Authentication
       callback(results.length > 0);
     });
   }
-<<<<<<< HEAD:StockControl/server.ts
 }
-=======
-}
->>>>>>> ea91d2c6072d52bb72aacc35d840cf7ee1f348ae:StockControl/app.ts
