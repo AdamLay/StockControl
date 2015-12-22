@@ -1,4 +1,3 @@
-var Enums = require("./Enums");
 var Helpers;
 (function (Helpers) {
     var Events = (function () {
@@ -75,4 +74,3 @@ var Helpers;
     }
     Helpers.FormatDate = FormatDate;
 })(Helpers || (Helpers = {}));
-module.exports = Helpers;

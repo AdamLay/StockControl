@@ -17,7 +17,6 @@ $(document).ready(function () {
         }
     });
     Inventory.StockUpdateEvent.Subscribe(function (data) {
-        // TODO: Only works if product is in same stock group...
         $('[data-stockid="' + data.Id + '"]').replaceWith(Templates["stockItem"]({ item: data }));
     });
     Inventory.StockAdjustEvent.Subscribe(function (data) {

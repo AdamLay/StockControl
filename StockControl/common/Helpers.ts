@@ -1,12 +1,3 @@
-import Enums = require("./Enums");
-
-interface IHelpers
-{
-  GetIcon: (name: string) => string;
-  GetColour: (name: string) => string;
-  FormatDate: (d: Date) => string;
-}
-
 module Helpers
 {
   export class Events
@@ -100,5 +91,3 @@ module Helpers
     return str;
   }
 }
-
-export = Helpers;

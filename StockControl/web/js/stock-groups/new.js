@@ -3,7 +3,6 @@ $("#txtName").on("keyup", function () {
     var $this = $(this);
     new Throttler("NameKeyUp", 800, function () {
         Api.Get("/api/stock-groups/" + encodeURIComponent($this.val()), function (res) {
-            // Error if stock group found
             if (res.Success) {
                 $("#msgExisting").fadeIn(100);
                 Validation.Error($this);

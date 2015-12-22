@@ -8,8 +8,6 @@ var app = express();
 
 //#region Helpers
 
-import Helpers = require("./web/js/Helpers");
-
 var groupBy = function (arr, prop, nameProp)
 {
   var groups = {};
@@ -28,9 +26,6 @@ var groupBy = function (arr, prop, nameProp)
 };
 
 //#endregion
-
-//var auditTypes: AuditTypes = require("./web/js/Enums.AuditTypes.js");
-import Enums = require("./web/js/Enums");
 
 // Set up view engine
 app.set("views", path.join(__dirname, "views"));

@@ -14,8 +14,6 @@ module Enums
 
   export enum Events
   {
-    
+
   }
 }
-
-export = Enums;

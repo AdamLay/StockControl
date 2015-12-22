@@ -1,6 +1,3 @@
-//import Helpers = require("./Helpers");
-declare var Helpers: any;
-
 //#region Prototypes
 
 interface Array<T>

@@ -15,4 +15,3 @@ var Enums;
     })(Enums.Events || (Enums.Events = {}));
     var Events = Enums.Events;
 })(Enums || (Enums = {}));
-module.exports = Enums;

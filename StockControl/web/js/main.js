@@ -29,8 +29,6 @@ Array.prototype.groupBy = function (prop) {
     }
     return groups;
 };
-//#endregion
-//#region Helpers
 function alertTop(msg, success) {
     var $pop = $("<div>", {
         "class": "alert " + (success ? "alert-success" : "alert-danger"),
@@ -50,14 +48,11 @@ function getQueryStringValue(key) {
     var results = regex.exec(window.location.href);
     return results ? decodeURIComponent(results[1].replace(/\+/g, " ")) : null;
 }
-// ...
 if (!window.module)
     window.module = {};
-//#endregion
 $(document).ready(function () {
     SocketManager.Init();
     Notifications.Init();
-    // Hide any success notifications after 3 seconds
     setTimeout(function () { $("#messageSuccess").slideUp(200); }, 3000);
 });
 var SocketManager = (function () {
@@ -125,7 +120,6 @@ var Throttler = (function () {
     };
     return Throttler;
 })();
-//#endregion
 var Validation = (function () {
     function Validation() {
     }
