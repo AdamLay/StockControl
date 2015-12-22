@@ -268,3 +268,5 @@ node_modules
 data/
 *.map
 *.sqlite3
+*.js
+!gulpfile.js
