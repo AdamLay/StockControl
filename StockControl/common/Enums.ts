@@ -16,4 +16,10 @@ module Enums
   {
 
   }
+
+  export enum ErrorCodes
+  {
+    PasswordsDontMatch,
+    UserExists
+  }
 }

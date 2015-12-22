@@ -144,7 +144,7 @@ app.post("/register", function (req, res)
 
   if (pwd1 != pwd2)
   {
-    res.redirect("/register?success=false&err=" + helpers.ErrorCodes.PasswordsDontMatch);
+    res.redirect("/register?success=false&err=" + Helpers.ErrorCodes.PasswordsDontMatch);
     return;
   }
 
@@ -159,7 +159,7 @@ app.post("/register", function (req, res)
     }
     else
     {
-      res.redirect("/register?success=false&err=" + helpers.ErrorCodes.UserExists);
+      res.redirect("/register?success=false&err=" + Helpers.ErrorCodes.UserExists);
     }
   });
 });
@@ -744,7 +744,8 @@ class Audit
         {
           audit.Id = row.Id;
 
-        io.emit(Helpers.Events.Notification, audit);
+          io.emit(Helpers.Events.Notification, audit);
+        });
       });
     });
   }
