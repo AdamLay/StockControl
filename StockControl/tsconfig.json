@@ -1,6 +1,3 @@
 {
-    "buildOnSave": true,
-    "compilerOptions": {
-        "sourceMap": false
-    }
+    "buildOnSave": true
 }

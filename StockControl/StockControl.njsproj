@@ -4,8 +4,8 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{51dfb5a7-0f28-457d-96a2-0e65a2ca3ea0}</ProjectGuid>
-    <ProjectView>ShowAllFiles</ProjectView>
-    <StartupFile>app.ts</StartupFile>
+    <ProjectView>ProjectFiles</ProjectView>
+    <StartupFile>server.ts</StartupFile>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <ProjectTypeGuids>{3AF33F2E-1136-4D97-BBB7-1795711AC8B8};{349c5851-65df-11da-9384-00065b846f21};{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}</ProjectTypeGuids>
@@ -20,10 +20,13 @@
   <ItemGroup>
     <Compile Include="gulpfile.js" />
     <Compile Include="views\partials\notifications.jade" />
-    <Content Include="compilerconfig.json" />
+    <Content Include="install_packages.bat" />
     <Content Include="package.json" />
     <Content Include="Procfile" />
     <Content Include="README.md" />
+    <Content Include="reset_db.bat" />
+    <Content Include="run_server.bat" />
+    <Content Include="tsconfig.json" />
     <Content Include="views\auth\login.jade" />
     <Content Include="views\auth\register.jade" />
     <Content Include="views\client\auditEntry.jade" />
@@ -38,7 +41,8 @@
     <Content Include="web\styles\main.css" />
     <Content Include="web\styles\main.min.css" />
     <Content Include="web\styles\timeline.css" />
-    <TypeScriptCompile Include="app.ts" />
+    <TypeScriptCompile Include="common\Enums.ts" />
+    <TypeScriptCompile Include="common\Helpers.ts" />
     <TypeScriptCompile Include="d.ts\express.d.ts" />
     <TypeScriptCompile Include="d.ts\jquery.d.ts" />
     <TypeScriptCompile Include="d.ts\mongodb.d.ts" />
@@ -51,25 +55,19 @@
     <Content Include="views\stock-groups\new.jade" />
     <Content Include="views\stock\new.jade" />
     <TypeScriptCompile Include="d.ts\serve-static.d.ts" />
+    <TypeScriptCompile Include="server.ts" />
     <TypeScriptCompile Include="StockControl.d.ts" />
     <TypeScriptCompile Include="web\js\audit\index.ts" />
     <TypeScriptCompile Include="web\js\components\notifications.ts" />
-    <TypeScriptCompile Include="web\js\Enums.ts" />
-    <TypeScriptCompile Include="web\js\Helpers.ts" />
     <TypeScriptCompile Include="web\js\main.ts" />
     <Content Include="web\styles\main.less" />
-    <Content Include="web\images\icons\close.svg" />
-    <Content Include="web\images\icons\eject.svg" />
-    <Content Include="web\images\icons\menu.svg" />
-    <Content Include="web\images\icons\minus.svg" />
-    <Content Include="web\images\icons\remove.svg" />
-    <Content Include="web\images\icons\settings.svg" />
     <TypeScriptCompile Include="web\js\stock-groups\edit.ts" />
     <TypeScriptCompile Include="web\js\stock-groups\new.ts" />
     <TypeScriptCompile Include="web\js\components\stock-list.ts" />
     <TypeScriptCompile Include="web\js\stock\new.ts" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="common\" />
     <Folder Include="d.ts" />
     <Folder Include="views\" />
     <Folder Include="views\audit\" />
@@ -79,8 +77,6 @@
     <Folder Include="views\partials\" />
     <Folder Include="views\stock\" />
     <Folder Include="web" />
-    <Folder Include="web\images" />
-    <Folder Include="web\images\icons" />
     <Folder Include="web\js" />
     <Folder Include="web\js\components\" />
     <Folder Include="web\js\audit\" />
@@ -100,7 +96,7 @@
     <TypeScriptOutDir />
     <TypeScriptGeneratesDeclarations>False</TypeScriptGeneratesDeclarations>
     <TypeScriptNoEmitOnError>True</TypeScriptNoEmitOnError>
-    <TypeScriptSourceMap>False</TypeScriptSourceMap>
+    <TypeScriptSourceMap>True</TypeScriptSourceMap>
     <TypeScriptMapRoot />
     <TypeScriptSourceRoot />
   </PropertyGroup>
